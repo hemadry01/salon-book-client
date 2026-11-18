@@ -253,7 +253,7 @@ export default function SignUpPage() {
 
   // Google signup
   const handleGoogleLogin = async () => {
-   const data = await signIn.social({
+   const data = await authClient.signIn.social({
      provider: "google",
    });
    if(data){

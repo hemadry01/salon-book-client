@@ -48,9 +48,9 @@ export default function Navbar() {
 
        toast.add({
          title: "success",
-         description: "Successfully signed out!.",
+         description: "Successfully sign out!.",
        });
-       
+
      } catch(error) {
 
         toast.add({
