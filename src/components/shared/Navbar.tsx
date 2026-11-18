@@ -2,18 +2,67 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { use, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { authClient } from "@/lib/auth-client";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { toast } from "../ui/toast";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
+  const{data:sesion} = authClient.useSession();
+   const user = sesion?.user
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Browse Services", path: "/services" },
   ];
+
+  const handleSignOut = async() =>{
+     try {
+       const { error } = await authClient.signOut();
+
+       if (error) {
+        toast.add({
+          type: "error",
+          title: "Sign out failed!",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Something went wrong. Please try again.",
+        })
+       }
+
+       toast.add({
+         title: "success",
+         description: "Successfully signed out!.",
+       });
+       
+     } catch(error) {
+
+        toast.add({
+          type: "error",
+          title: "Something went wrong!",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Something went wrong. Please try again.",
+        });
+     }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/90 backdrop-blur-lg">
@@ -21,12 +70,12 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image
-                src="/images/logo.png"
-                alt="SalonBook Logo"
-                width={30}
-                height={30}
-                priority
-            />
+            src="/images/logo.png"
+            alt="SalonBook Logo"
+            width={30}
+            height={30}
+            priority
+          />
 
           <span className="text-2xl font-bold tracking-tight text-gray-900">
             Salon<span className="text-rose-500">Book</span>
@@ -52,19 +101,62 @@ export default function Navbar() {
 
         {/* Auth Buttons */}
         <div className="hidden items-center gap-4 md:flex">
-          <Link
-            href="/sign-in"
-            className="text-sm font-semibold text-gray-700 hover:text-rose-600"
-          >
-            Sign In
-          </Link>
+          {user ? (
+            <>
+              <Popover>
+                <PopoverTrigger render={<Button variant="outline" />}>
+                  <Avatar className="cursor-pointer ">
+                    <AvatarImage
+                      src={user?.image || ""}
+                      alt={user?.name || "User"}
+                      className="grayscale"
+                    />
 
-          <Link
-            href="/sign-up"
-            className="rounded-full bg-rose-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-rose-200 transition hover:bg-rose-600"
-          >
-            Sign Up
-          </Link>
+                    <AvatarFallback>
+                      {user?.name?.charAt(0).toUpperCase() || "SB"}
+                    </AvatarFallback>
+                  </Avatar>
+                </PopoverTrigger>
+
+                <PopoverContent align="end" className="w-48">
+                  <PopoverHeader>
+                    <PopoverTitle>{user?.name || "User"}</PopoverTitle>
+                  </PopoverHeader>
+
+                  <div className="flex flex-col gap-1 py-2">
+                    <Link href="/">Dashboard</Link>
+                  </div>
+
+                  <div className="border-t pt-3">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="w-full"
+                      onClick={handleSignOut}
+                    >
+                      Sign Out
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/sign-in"
+                className="text-sm font-semibold text-gray-700 hover:text-rose-600"
+              >
+                Sign In
+              </Link>
+
+              <Link
+                href="/sign-up"
+                className="rounded-full bg-rose-500 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-rose-200 transition hover:bg-rose-600"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
