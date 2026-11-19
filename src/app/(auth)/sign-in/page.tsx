@@ -128,6 +128,17 @@ export default function SignInPage() {
           callbackURL: "/", // An optional URL to redirect to after the user signs in. (optional)
         });
 
+        if(error){
+            toast.add({
+              type: "error",
+              title: "Signin failed!",
+              description:
+                error instanceof Error
+                  ? error.message
+                  : "Something went wrong. Please try again.",
+            });
+        }
+
         if(data){
             toast.add({
               title: "Welcome back!",
@@ -135,6 +146,7 @@ export default function SignInPage() {
             });
             router.push("/");
         }
+
         
     } catch (error) {
         toast.add({

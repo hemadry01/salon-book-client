@@ -124,7 +124,7 @@ export default function Navbar() {
                   </PopoverHeader>
 
                   <div className="flex flex-col gap-1 py-2">
-                    <Link href="/">Dashboard</Link>
+                    <Link href="/dashboard">Dashboard</Link>
                   </div>
 
                   <div className="border-t pt-3">
