@@ -10,13 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import DashboardsidebarFooter from "./DashboardsidebarFooter";
 import DashboardsidebarHeader from "./DashboardsidebarHeader";
-import DashboardItem from "./DashboardItem";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -25,7 +19,6 @@ import {
 import {
   BriefcaseBusiness,
   CalendarDays,
-  ChevronDown,
   LayoutDashboard,
   PlusCircle,
   Receipt,
