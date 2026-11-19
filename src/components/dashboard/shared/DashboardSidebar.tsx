@@ -66,7 +66,7 @@ const roleBaseSidebarItem = {
     },
     {
       title: "Add Service",
-      href: "/dashboard/admin/manage-service/add-service",
+      href: "/dashboard/admin/manage-services/add-service",
       icon: PlusCircle,
     },
     {
