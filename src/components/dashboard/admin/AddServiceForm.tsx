@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ImagePlus, RotateCcw, Loader2 } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 
 const categories = [
   "Haircut & Styling",
@@ -27,6 +29,7 @@ const categories = [
 ];
 
 export default function AddService() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState("");
@@ -35,30 +38,21 @@ export default function AddService() {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
   const [active, setActive] = useState(true);
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
+  // const [image, setImage] = useState<File | null>(null);
+  // const [preview, setPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Clean up image preview URL
-  useEffect(() => {
-    if (!image) {
-      setPreview("");
-      return;
-    }
+  const [image, setImage] = useState<string| null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
-    const imageUrl = URL.createObjectURL(image);
-    setPreview(imageUrl);
-
-    return () => URL.revokeObjectURL(imageUrl);
-  }, [image]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      
       e.target.value = "";
       return;
     }
@@ -68,8 +62,37 @@ export default function AddService() {
       return;
     }
 
-    setImage(file);
-  };
+    setIsImageUploading(true);
+
+    try {
+      const uploadeFormData = new FormData();
+      uploadeFormData.append("image", file);
+
+      const imagebbAPI = `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMAGBB_API_KEY}`;
+
+      const response = await fetch(imagebbAPI, {
+        method: "POST",
+        body: uploadeFormData,
+      });
+
+      const result = await response.json();
+      console.log(result);
+      const imaeURL = result.data.display_url || result.data.url;
+
+      setImage(imaeURL);
+    } catch (uploadError) {
+      setImage(null);
+
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Could not upload profile image.",
+      );
+    } finally {
+      setIsImageUploading(false);
+      e.target.value = "";
+    }
+  };;
 
   const handleReset = () => {
     setName("");
@@ -106,31 +129,42 @@ export default function AddService() {
     try {
       setLoading(true);
 
-      const formData = new FormData();
+        const serviceData = {
+          name: name.trim(),
+          category,
+          description: description.trim(),
+          price: Number(price),
+          duration: Number(duration),
+          active,
+          image,
+        };
 
-      formData.append("name", name.trim());
-      formData.append("category", category);
-      formData.append("description", description.trim());
-      formData.append("price", price);
-      formData.append("duration", duration);
-      formData.append("active", String(active));
-      formData.append("image", image);
+        const res = await fetch("http://localhost:8000/admin/add-service", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(serviceData),
+        });
 
-      // TODO: Connect your backend API here.
-      // Example:
-      // const response = await fetch("/api/services", {
-      //   method: "POST",
-      //   body: formData,
-      // });
-      //
-      // if (!response.ok) throw new Error("Failed to add service");
+        const result = await res.json();
 
-      console.log("Service data ready:", formData);
+      console.log("Service data ready:", result);
 
-      
-
-      // Reset after successful API response.
-      // handleReset();
+        if (result.success === true){
+          router.push("/dashboard/admin/manage-services");
+          handleReset();
+          toast.add({
+            title: "created servicess!",
+            description: "Create new servicess successfully",
+          });
+        }else{
+          toast.add({
+            title: "Failed to create service!",
+            description: result.message || "Something went wrong!",
+          });
+        }
+          // Reset after successful API response.
     } catch (error) {
       console.error(error);
       
@@ -276,9 +310,9 @@ export default function AddService() {
                   </div>
 
                   <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-slate-300 bg-slate-50">
-                    {preview ? (
+                    {image ? (
                       <img
-                        src={preview}
+                        src={image}
                         alt="Service preview"
                         className="h-full w-full object-cover"
                       />
