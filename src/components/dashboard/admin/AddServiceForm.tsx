@@ -38,14 +38,11 @@ export default function AddService() {
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("");
   const [active, setActive] = useState(true);
-  // const [image, setImage] = useState<File | null>(null);
-  // const [preview, setPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [image, setImage] = useState<string| null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
