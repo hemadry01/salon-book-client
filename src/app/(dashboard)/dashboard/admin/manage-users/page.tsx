@@ -14,7 +14,7 @@ import React from 'react';
 const ManageuserPage = async() => {
     let userData:IUser[]=[];
     try {
-        const result = await fetch("http://localhost:5000/api/admin/users", {
+        const result = await fetch("http://localhost:8000/users", {
           next: { revalidate: 60 },
         });
 
