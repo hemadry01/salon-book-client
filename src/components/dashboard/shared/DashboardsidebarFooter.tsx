@@ -70,7 +70,6 @@ const DashboardsidebarFooter = () => {
                     /> */}
                 <AvatarFallback className="rounded-lg">
                   {user?.name.slice(0, 2).toLowerCase()}
-                  
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -99,7 +98,12 @@ const DashboardsidebarFooter = () => {
                   Back to site
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  render={<Link href="/profile" onClick={closeMobile} />}
+                  render={
+                    <Link
+                      href="/dashboard/admin/profile"
+                      onClick={closeMobile}
+                    />
+                  }
                 >
                   <UserRound />
                   My profile
