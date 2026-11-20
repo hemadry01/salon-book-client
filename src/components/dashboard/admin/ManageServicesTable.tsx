@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Plus, Eye, Pencil, Trash2 } from "lucide-react";
+import { Check, Plus, Eye, Pencil, Trash2, Trash2Icon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -18,13 +18,30 @@ import { IService } from "@/type/service";
 import Image from "next/image";
 import { useState } from "react";
 
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/toast";
+
 interface IServiceProps{
   serviceItem:IService[]
 }
 
 const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
+
   console.log(serviceItem);
   const[currentPage, setCurrentPage]=useState(1);
+  const[openDialog, setOpenDialog] =useState<string | null>(null)
   const itemsPerPage = 10;
 
   const totalPages = Math.ceil(
@@ -36,6 +53,40 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
     startIndex,
     startIndex + itemsPerPage,
   );
+
+  const handledeleteData = async (id: string) => {
+    //console.log(serviceItem.);
+    try {
+      const res = await fetch(
+        `http://localhost:8000/admin/service/${id}`,
+        {
+          method: "DELETE",
+        },
+      );
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message);
+      }
+      toast.add({
+        title: "Delete Service",
+        description: "Service deleted successfully!",
+      });
+
+      setOpenDialog(null);
+
+      window.location.reload();
+
+    } catch (error) {
+      toast.add({
+        type: "error",
+        title: "Deleted service failed!",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 lg:p-8">
@@ -162,7 +213,6 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
                         >
                           <Eye className="size-4" />
                         </Button>
-
                         <Button
                           size="icon"
                           variant="outline"
@@ -171,15 +221,46 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
                         >
                           <Pencil className="size-4" />
                         </Button>
-
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="size-8 text-red-500"
-                          aria-label="Delete service"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            render={
+                              // <Button variant="destructive">Delete Chat</Button>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                className="size-8 text-red-500"
+                                aria-label="Delete service"
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            }
+                          />
+                          <AlertDialogContent size="sm">
+                            <AlertDialogHeader>
+                              <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                                <Trash2Icon />
+                              </AlertDialogMedia>
+                              <AlertDialogTitle>Delete chat?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete `{service.name}`
+                                ? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel variant="outline">
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={(e) => 
+                                 { e.preventDefault();
+                                  handledeleteData(service._id)}}
+                                variant="destructive"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

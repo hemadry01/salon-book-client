@@ -150,11 +150,13 @@ export default function AddService() {
 
         if (result.success === true){
           router.push("/dashboard/admin/manage-services");
+          router.refresh()
           handleReset();
           toast.add({
             title: "created servicess!",
             description: "Create new servicess successfully",
           });
+
         }else{
           toast.add({
             title: "Failed to create service!",

@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 const ManageservicePage = async() => {
   let serviceItem:IService[]=[];
-  const res = await fetch("http://localhost:8000/admin/services", {
-    next: { revalidate: 60 },
+  const res = await fetch("http://localhost:8000/admin/services",{
+    cache: "no-store",
   });
   const serviceData = await res.json();
   serviceItem = serviceData.data;
