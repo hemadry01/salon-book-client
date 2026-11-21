@@ -32,6 +32,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/toast";
+import UpdateServiceData from "./UpdateServiceData";
+import { connection } from "next/server";
 
 interface IServiceProps{
   serviceItem:IService[]
@@ -56,6 +58,7 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
 
   const handledeleteData = async (id: string) => {
     //console.log(serviceItem.);
+    await connection();
     try {
       const res = await fetch(
         `http://localhost:8000/admin/service/${id}`,
@@ -113,24 +116,6 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
             Add Service
           </Link>
         </div>
-
-        {/* Statistics
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Total Services</p>
-            <h2 className="mt-2 text-2xl font-bold text-slate-900">01</h2>
-          </div>
-
-          <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Active Services</p>
-            <h2 className="mt-2 text-2xl font-bold text-emerald-600">01</h2>
-          </div>
-
-          <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Inactive Services</p>
-            <h2 className="mt-2 text-2xl font-bold text-red-500">00</h2>
-          </div>
-        </div> */}
 
         {/* Table */}
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -197,9 +182,15 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
                     </TableCell>
 
                     <TableCell>
-                      <Badge className="gap-1 border-0 bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                        <Check className="size-3" />
-                        Active
+                      <Badge
+                        className={
+                          service.active
+                            ? "gap-1 border-0 bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                            : "gap-1 border-0 bg-red-100 text-red-700 hover:bg-red-100"
+                        }
+                      >
+                        {/* <Check className="size-3" /> */}
+                        {service.active === true ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
 
@@ -213,18 +204,10 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
                         >
                           <Eye className="size-4" />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="size-8 text-violet-600"
-                          aria-label="Edit service"
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
+                        <UpdateServiceData service={service} />
                         <AlertDialog>
                           <AlertDialogTrigger
                             render={
-                              // <Button variant="destructive">Delete Chat</Button>
                               <Button
                                 size="icon"
                                 variant="outline"
@@ -240,7 +223,9 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
                               <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
                                 <Trash2Icon />
                               </AlertDialogMedia>
-                              <AlertDialogTitle>Delete chat?</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Delete service?
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
                                 Are you sure you want to delete `{service.name}`
                                 ? This action cannot be undone.
@@ -251,9 +236,10 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
                                 Cancel
                               </AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={(e) => 
-                                 { e.preventDefault();
-                                  handledeleteData(service._id)}}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handledeleteData(service._id);
+                                }}
                                 variant="destructive"
                               >
                                 Delete

@@ -323,7 +323,7 @@ export default function AddService() {
               </div>
 
               {/* Service Status */}
-              <div className="flex items-center gap-3 rounded-lg border border-slate-200 p-4">
+              {/* <div className="flex items-center gap-3 rounded-lg border border-slate-200 p-4">
                 <Switch
                   id="status"
                   checked={active}
@@ -342,7 +342,7 @@ export default function AddService() {
                       : "This service will be hidden from customers."}
                   </p>
                 </div>
-              </div>
+              </div> */}
 
               {/* Buttons */}
               <div className="flex flex-wrap gap-3 pt-2">
