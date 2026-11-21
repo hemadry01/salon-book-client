@@ -5,7 +5,7 @@ import React from "react";
 const ServicesPage = async () => {
   let serviceData: IService[] = [];
   try {
-    const res = await fetch("http://localhost:8000/admin/services", {
+    const res = await fetch("http://localhost:8000/services", {
       cache: "no-store",
     });
 
