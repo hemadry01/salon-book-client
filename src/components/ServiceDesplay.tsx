@@ -38,13 +38,16 @@ const ServiceDesplay = async() => {
           </h1>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-6 px-6 lg:px-10">
-          {serviceData.map((studioItem) => (
-            <Card key={studioItem._id} className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          {serviceData.map((service) => (
+            <Card
+              key={service._id}
+              className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            >
               {/* Service Image */}
               <div className="relative h-56 w-full overflow-hidden">
                 <Image
-                  src={studioItem.image}
-                  alt={studioItem.name}
+                  src={service.image}
+                  alt={service.name}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
@@ -57,20 +60,20 @@ const ServiceDesplay = async() => {
                     variant="secondary"
                     className="rounded-full bg-blue-50 px-3 py-1 text-blue-600"
                   >
-                    {studioItem.category}
+                    {service.category}
                   </Badge>
                 </div>
 
                 {/* Service Name */}
                 <h2 className="text-xl font-bold text-gray-900">
-                  {studioItem.name}
+                  {service.name}
                 </h2>
               </CardHeader>
 
               <CardContent className="space-y-4">
                 {/* Description */}
                 <p className="line-clamp-2 text-sm leading-6 text-gray-500">
-                  {studioItem.description}
+                  {service.description}
                 </p>
 
                 {/* Price & Duration */}
@@ -78,7 +81,7 @@ const ServiceDesplay = async() => {
                   <div>
                     <p className="text-xs text-gray-500">Service Price</p>
                     <p className="text-xl font-bold text-blue-600">
-                      ৳{studioItem.price}
+                      ৳{service.price}
                     </p>
                   </div>
 
@@ -86,7 +89,7 @@ const ServiceDesplay = async() => {
                     <p className="mb-1 text-xs text-gray-500">Duration</p>
                     <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
                       <Clock size={16} />
-                      {studioItem.duration}
+                      {service.duration}
                     </div>
                   </div>
                 </div>
@@ -96,7 +99,7 @@ const ServiceDesplay = async() => {
               <CardFooter>
                 <Button className="group h-12 w-full rounded-xl bg-rose-500 px-6 py-2.5 text-base font-semibold text-white shadow-md transition-all duration-300 hover:bg-blue-700 hover:shadow-lg">
                   <Link
-                    href={`/services/${studioItem._id}`}
+                    href={`/services/${service._id}`}
                     className="flex items-center justify-center gap-2"
                   >
                     View Details
