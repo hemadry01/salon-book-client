@@ -2,9 +2,12 @@ import React from 'react';
 
 const OverviewStats = async() => {
 
-  const res = await fetch("http://localhost:8000/users/counts");
+  const res = await fetch("http://localhost:8000/users/counts", {
+    cache: "no-store",
+  });
   const user = await res.json();
   const totalUser = user.count;
+  
 
   const response = await fetch("http://localhost:8000/services/count");
   const activeservice = await response.json();
