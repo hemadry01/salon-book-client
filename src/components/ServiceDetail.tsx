@@ -125,7 +125,6 @@ const ServiceDetail = ({ serviceDetail }:IserviceProps) => {
 
               {/* Appointment Booking */}
               <Button
-                
                 className="group h-14 w-full rounded-xl bg-blue-600 text-base font-semibold shadow-lg shadow-blue-100 transition-all hover:bg-blue-700"
               >
                 <Link href={`/booking/${serviceDetail._id}`}>
