@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+
 import {
   Select,
   SelectContent,
@@ -25,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { Switch } from "@/components/ui/switch";
 import { Pencil } from "lucide-react";
 import { toast } from "@/components/ui/toast";
@@ -34,6 +36,16 @@ interface EditServiceDataProps {
   service: IService;
   onUpdated?: () => void;
 }
+
+const categories = [
+  "Haircut & Styling",
+  "Hair Coloring",
+  "Hair Treatment",
+  "Facial & Skincare",
+  "Makeup",
+  "Manicure & Pedicure",
+  "Spa & Massage",
+];
 
 export default function EditServiceData({
   service,
@@ -48,18 +60,9 @@ export default function EditServiceData({
   );
 }
 
-const categories = [
-  "Haircut & Styling",
-  "Hair Coloring",
-  "Hair Treatment",
-  "Facial & Skincare",
-  "Makeup",
-  "Manicure & Pedicure",
-  "Spa & Massage",
-];
-
 function EditServiceDataForm({ service, onUpdated }: EditServiceDataProps) {
   const router = useRouter();
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -92,7 +95,6 @@ function EditServiceDataForm({ service, onUpdated }: EditServiceDataProps) {
       setLoading(true);
       setError("");
 
-      // Validation
       if (!formData.name.trim()) {
         setError("Service name is required");
         return;
@@ -139,22 +141,20 @@ function EditServiceDataForm({ service, onUpdated }: EditServiceDataProps) {
       );
 
       const result = await res.json();
-      console.log(result)
 
       if (!res.ok) {
         throw new Error(result.message || "Failed to update service");
       }
-      //  if (res.ok) {
-      // }
-      
-      router.refresh();
+
       toast.add({
         title: "Update Service",
-        description: "Service update successfully!",
+        description: "Service updated successfully!",
       });
 
       setOpen(false);
       onUpdated?.();
+
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -164,12 +164,19 @@ function EditServiceDataForm({ service, onUpdated }: EditServiceDataProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      {/* Edit Button */}
-      <AlertDialogTrigger>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Pencil className="size-4" />
-        </Button>
-      </AlertDialogTrigger>
+      {/* Edit Button - Fixed Nested Button */}
+      <AlertDialogTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            aria-label="Edit service"
+          >
+            <Pencil className="size-4" />
+          </Button>
+        }
+      />
 
       <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <AlertDialogHeader>

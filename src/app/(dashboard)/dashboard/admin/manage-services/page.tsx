@@ -1,23 +1,34 @@
-import type { Metadata } from "next";
+
+import { Suspense } from "react";
+
 import ManageServicesTable from "@/components/dashboard/admin/ManageServicesTable";
-import { IService } from "@/type/service";
+import type { IService } from "@/type/service";
 
-export const metadata: Metadata = {
-  title: "Manage Services | SalonBook",
-  description: "View and manage all services offered by your salon.",
-};
-
-const ManageservicePage = async() => {
-  let serviceItem:IService[]=[];
-  const res = await fetch("http://localhost:8000/admin/services",{
+async function ServicesData() {
+  
+  const res = await fetch("http://localhost:8000/admin/services", {
     cache: "no-store",
   });
-  const serviceData = await res.json();
-  serviceItem = serviceData.data;
 
-  console.log(serviceItem);
+  if (!res.ok) {
+    throw new Error("Failed to fetch services");
+  }
+
+  const serviceData = await res.json();
+
+  const serviceItem: IService[] = serviceData.data ?? [];
 
   return <ManageServicesTable serviceItem={serviceItem} />;
-};
+}
 
-export default ManageservicePage;
+// Main page
+export default function ManageservicePage() {
+  return (
+    <div>
+      <Suspense fallback={<p>Loading services...</p>}>
+        <ServicesData />
+      </Suspense>
+    </div>
+  );
+}
+
