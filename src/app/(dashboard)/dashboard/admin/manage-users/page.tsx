@@ -4,7 +4,6 @@ import { IUser } from '@/type/user';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -15,7 +14,7 @@ const ManageuserPage = async() => {
     let userData:IUser[]=[];
     try {
         const result = await fetch("http://localhost:8000/users", {
-          next: { revalidate: 60 },
+          cache: "no-store",
         });
 
         if (!result.ok) {

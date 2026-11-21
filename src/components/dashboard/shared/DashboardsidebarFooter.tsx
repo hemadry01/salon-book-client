@@ -9,8 +9,10 @@ import React from 'react';
 import { ChevronsUpDown, House, LogOut, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/components/ui/toast';
+import { useRouter } from 'next/navigation';
 
 const DashboardsidebarFooter = () => {
+  const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
@@ -37,6 +39,7 @@ const DashboardsidebarFooter = () => {
             title: "success",
             description: "Successfully sign out!.",
           });
+          router.push("/")
         } catch (error) {
           toast.add({
             type: "error",

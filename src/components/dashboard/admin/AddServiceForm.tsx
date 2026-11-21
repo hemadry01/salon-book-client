@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { ImagePlus, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
@@ -22,7 +21,6 @@ const categories = [
   "Haircut & Styling",
   "Hair Coloring",
   "Hair Treatment",
-  "Facial & Skincare",
   "Makeup",
   "Manicure & Pedicure",
   "Spa & Massage",
@@ -321,30 +319,6 @@ export default function AddService() {
                   </div>
                 </div>
               </div>
-
-              {/* Service Status */}
-              {/* <div className="flex items-center gap-3 rounded-lg border border-slate-200 p-4">
-                <Switch
-                  id="status"
-                  checked={active}
-                  onCheckedChange={setActive}
-                  className="data-[state=checked]:bg-emerald-500"
-                />
-
-                <div>
-                  <Label htmlFor="status" className="font-medium">
-                    {active ? "Active Service" : "Inactive Service"}
-                  </Label>
-
-                  <p className="text-xs text-slate-500">
-                    {active
-                      ? "Customers can view and book this service."
-                      : "This service will be hidden from customers."}
-                  </p>
-                </div>
-              </div> */}
-
-              {/* Buttons */}
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button
                   type="submit"

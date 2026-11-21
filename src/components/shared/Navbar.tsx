@@ -26,7 +26,7 @@ export default function Navbar() {
   const user = sesion?.user;
 
   const navLinks = [
-    { name: "Home", path: "/dashboard/admin/overview" },
+    { name: "Home", path: "/" },
     { name: "Browse Services", path: "/services" },
   ];
 
