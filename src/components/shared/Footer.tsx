@@ -217,7 +217,7 @@ const Footer = () => {
 
         <div className="flex flex-col items-center justify-between gap-4 text-center md:flex-row">
           <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} SalonBook. All rights reserved.
+            © 2026 SalonBook. All rights reserved.
           </p>
 
           <div className="flex gap-6 text-sm">
