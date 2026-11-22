@@ -24,7 +24,7 @@ interface IserviceProps {
 }
 
 const ServiceDetail = ({ serviceDetail }:IserviceProps) => {
-    console.log("serviceDetail ====",serviceDetail.image);
+    console.log("serviceDetail");
   return (
     <section className="min-h-screen bg-slate-50 py-10 md:py-16">
       <div className="container mx-auto max-w-6xl px-4">
@@ -125,6 +125,7 @@ const ServiceDetail = ({ serviceDetail }:IserviceProps) => {
 
               {/* Appointment Booking */}
               <Button
+                
                 className="group h-14 w-full rounded-xl bg-blue-600 text-base font-semibold shadow-lg shadow-blue-100 transition-all hover:bg-blue-700"
               >
                 <Link href={`/booking/${serviceDetail._id}`}>
