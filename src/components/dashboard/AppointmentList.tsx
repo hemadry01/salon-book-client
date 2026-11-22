@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { CalendarDays, Clock, Eye, Scissors } from "lucide-react";
+import AppointmentDetails from "./PayService";
 
 interface IBookingProps {
   appointment: IBooking;
@@ -127,7 +128,7 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
 
       {/* Action */}
       <TableCell>
-        <Button
+        {/* <Button
           variant="outline"
           size="sm"
           onClick={() => console.log(appointment)}
@@ -135,7 +136,8 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
         >
           <Eye className="mr-1 h-4 w-4" />
           View Details
-        </Button>
+        </Button> */}
+        <AppointmentDetails appointment={appointment} />
       </TableCell>
     </TableRow>
   );

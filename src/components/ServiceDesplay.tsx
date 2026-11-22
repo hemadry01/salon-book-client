@@ -10,7 +10,7 @@ const ServiceDesplay = async() => {
     let serviceData: IService[] = [];
       try {
         const res = await fetch("http://localhost:8000/sevices/limit", {
-          cache: "no-store",
+          next: { revalidate: 60 },
         });
     
         const result = await res.json();

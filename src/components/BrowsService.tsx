@@ -68,10 +68,12 @@ const BrowsService = ({ services }: IServiceProps) => {
   }, [services, searchTerm, selectedCategory]);
 
   const handleViewDetails = (id: string) => {
-    if(!user){
+    if (!user) {
       router.push(`/sign-in?redirectTo=/services/${id}`);
-      return
+      return;
     }
+
+    router.push(`/services/${id}`);
   };
 
   return (

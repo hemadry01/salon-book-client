@@ -1,5 +1,5 @@
 "use client"
-import { IService } from '@/type/service';
+import { IService } from '@/type/service'; 
 import Image from "next/image";
 
 import {
@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Clock } from "lucide-react";
 import { Button } from "@base-ui/react";
 import { authClient, useSession } from "@/lib/auth-client";
-import { redirect,} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface IServiceProps {
   service:IService
@@ -24,13 +24,17 @@ const ServiceDesplayLimit = ({ service }:IServiceProps) => {
      const{data:session} = authClient.useSession();
         const user = session?.user;
       
-        //const router = useRouter();
+        const router = useRouter();
 
     const handleViewDetails = (id: string) => {
       if (!user) {
-        redirect(`/sign-in?redirectTo=/services/${id}`);
+        router.push(`/sign-in?redirectTo=/services/${id}`);
+        return;
       }
+
+      router.push(`/services/${id}`);
     };
+     
   return (
     <Card
       className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"

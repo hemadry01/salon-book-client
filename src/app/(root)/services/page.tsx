@@ -7,7 +7,7 @@ const ServicesPage = async () => {
 
   try {
     const res = await fetch("http://localhost:8000/services", {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
