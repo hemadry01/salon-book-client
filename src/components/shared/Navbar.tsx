@@ -2,8 +2,8 @@
 
 import { Menu, X, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useState, Suspense } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 
@@ -17,12 +17,10 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { toast } from "../ui/toast";
-import { useRouter } from "next/navigation";
 
-export default function Navbar() {
+function NavbarContent() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-
   const router = useRouter();
 
   const { data: sesion } = authClient.useSession();
@@ -55,7 +53,6 @@ export default function Navbar() {
       });
 
       router.push("/");
-
     } catch (error) {
       toast.add({
         type: "error",
@@ -126,9 +123,6 @@ export default function Navbar() {
                       {user?.name?.charAt(0).toUpperCase() || "SB"}
                     </AvatarFallback>
                   </Avatar>
-                  {/* <span className="max-w-28 truncate text-sm font-semibold text-gray-700">
-                    {user?.name || "User"}
-                  </span> */}
                 </div>
               </PopoverTrigger>
 
@@ -276,5 +270,13 @@ export default function Navbar() {
         )}
       </nav>
     </header>
+  );
+}
+
+export default function Navbar() {
+  return (
+    <Suspense fallback={<div className="h-16 w-full bg-white" />}>
+      <NavbarContent />
+    </Suspense>
   );
 }

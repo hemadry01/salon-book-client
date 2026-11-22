@@ -12,7 +12,7 @@ const BookingPage = async ({ params }: BookingPageProps) => {
   const { id } = await params;
 
   const res = await fetch(`http://localhost:8000/service/${id}`, {
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
 
   if (!res.ok) {

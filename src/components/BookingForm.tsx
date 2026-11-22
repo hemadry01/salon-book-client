@@ -38,10 +38,9 @@ const timeSlots = [
 ];
 
 const BookingForm = ({ service }: BookingFormProps) => {
-
-    const {data:session} = authClient.useSession();
-    const user = session?.user;
-    const [formData, setFormData] = useState({
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const [formData, setFormData] = useState({
     name: user?.name,
     email: user?.email,
     appointmentDate: "",
@@ -74,7 +73,7 @@ const BookingForm = ({ service }: BookingFormProps) => {
     setLoading(true);
 
     try {
-        const convertTime = (time: string) => {
+      const convertTime = (time: string) => {
         const [clock, period] = time.split(" ");
         const [parsedHours, minutes] = clock.split(":").map(Number);
         let hours = parsedHours;
@@ -93,10 +92,44 @@ const BookingForm = ({ service }: BookingFormProps) => {
         time: convertTime(formData.appointmentTime),
         specialRequest: formData.specialRequest,
 
-        status: "pending",
-        paymentStatus: "unpaid",
-        approved: false,
+        // status: "pending",
+        // paymentStatus: "unpaid",
+        // approved: false,
       };
+    //   const res = await fetch("http://localhost:8000/booking", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(bookingData),
+    //   });
+
+    //   const result = await res.json();
+
+    //   if (!res.ok) {
+    //     toast.add({
+    //       title: result.message,
+    //       description: "Booking failed",
+    //     });
+    //     return;
+    //   }
+
+    //   toast.add({
+    //     title: "Booking Status",
+    //     description: "Booking successful!",
+    //   });
+    //   router.push("/services");
+    //   router.refresh();
+    // } catch (error) {
+    //   console.error("Booking error:", error);
+
+    //   toast.add({
+    //     title: "Booking Status",
+    //     description: "Something went wrong!",
+    //   });
+    // } finally {
+    //   setLoading(false);
+    // }
       const res = await fetch("http://localhost:8000/booking", {
         method: "POST",
         headers: {
@@ -108,10 +141,10 @@ const BookingForm = ({ service }: BookingFormProps) => {
       const result = await res.json();
 
       if (!res.ok) {
-         toast.add({
-           title: result.message,
-           description: "Booking failed",
-         });
+        toast.add({
+          title: result.message || "Booking failed",
+          description: "Please try again.",
+        });
         return;
       }
 
@@ -119,12 +152,12 @@ const BookingForm = ({ service }: BookingFormProps) => {
         title: "Booking Status",
         description: "Booking successful!",
       });
+
       router.push("/services");
       router.refresh();
-
     } catch (error) {
       console.error("Booking error:", error);
-      
+
       toast.add({
         title: "Booking Status",
         description: "Something went wrong!",
@@ -162,7 +195,6 @@ const BookingForm = ({ service }: BookingFormProps) => {
             <div className="space-y-7 lg:col-span-2">
               {/* Customer Information */}
               <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
-                
                 <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
                   <div className="mb-6">
                     <div className="flex items-center justify-between">
