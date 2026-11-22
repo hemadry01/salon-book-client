@@ -18,14 +18,7 @@ interface IBookingProps {
 }
 
 const AppointmentDetails = ({ appointment }:IBookingProps) => {
-//   const appointmentData = appointment || {
-//     date: "25 November 2026",
-//     time: "02:00 PM",
-//     status: "Confirmed",
-//     paymentStatus: "Unpaid",
-//     requestDate: "22 November 2026",
-//     price: 1200,
-//   };
+
 
   const handlePayment = () => {
     console.log("Proceed to payment", appointment);

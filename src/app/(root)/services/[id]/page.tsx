@@ -10,10 +10,10 @@ const page = async({params}:IServicedetailProps) => {
     const {id} = await params;
 
     const res = await fetch(`http://localhost:8000/service/${id}`, {
-      next: { revalidate: 5 },
+      next: { revalidate: 1 },
     });
-    const result = await res.json();
-    const serviceDetail:IService = result.data;
+    const serviceDetail = await res.json();
+    //const serviceDetail:IService = result.data;
     console.log("serviceDetail",serviceDetail.image);
     return (
       <div>

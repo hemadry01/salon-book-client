@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 import { CalendarDays, Clock, Eye, Scissors } from "lucide-react";
 import AppointmentDetails from "./PayService";
+import Link from "next/link";
 
 interface IBookingProps {
   appointment: IBooking;
@@ -128,16 +129,17 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
 
       {/* Action */}
       <TableCell>
-        {/* <Button
-          variant="outline"
-          size="sm"
-          onClick={() => console.log(appointment)}
-          className="whitespace-nowrap border-blue-500 text-blue-600 hover:bg-blue-50"
-        >
-          <Eye className="mr-1 h-4 w-4" />
-          View Details
-        </Button> */}
         <AppointmentDetails appointment={appointment} />
+        <Link href={"/payment"}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="whitespace-nowrap border-blue-500 text-blue-600 hover:bg-blue-50"
+          >
+            <Eye className="mr-1 h-4 w-4" />
+            payment
+          </Button>
+        </Link>
       </TableCell>
     </TableRow>
   );
