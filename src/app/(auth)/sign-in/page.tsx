@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent, type FormEvent, type SVGProps } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   CalendarCheck,
@@ -76,6 +76,11 @@ const highlights = [
 
 export default function SignInPage() {
   const router = useRouter();
+   const searchParams = useSearchParams();
+   const redirectTo = searchParams.get("redirectTo") ?? "/";
+   const serviceId = redirectTo.startsWith("/services/")
+     ? redirectTo.split("/")[2]
+     : null;
 
   const [formData, setFormData] = useState({
     email: "",
@@ -124,8 +129,8 @@ export default function SignInPage() {
         const { data, error } = await signIn.email({
           email: formData.email.trim(),
           password: formData.password,
-          rememberMe: true, 
-          callbackURL: "/", // An optional URL to redirect to after the user signs in. (optional)
+          rememberMe,
+          callbackURL: redirectTo, // An optional URL to redirect to after the user signs in. (optional)
         });
 
         if(error){
@@ -144,7 +149,7 @@ export default function SignInPage() {
               title: "Welcome back!",
               description: "You have successfully signed in to SalonBook.",
             });
-            router.push("/");
+            //router.replace(redirectTo);
         }
 
         

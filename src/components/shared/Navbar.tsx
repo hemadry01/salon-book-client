@@ -17,10 +17,13 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { toast } from "../ui/toast";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+
+  const router = useRouter();
 
   const { data: sesion } = authClient.useSession();
   const user = sesion?.user;
@@ -50,6 +53,9 @@ export default function Navbar() {
         title: "success",
         description: "Successfully sign out!.",
       });
+
+      router.push("/");
+
     } catch (error) {
       toast.add({
         type: "error",

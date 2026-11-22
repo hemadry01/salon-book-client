@@ -18,16 +18,18 @@ import { Input } from "@/components/ui/input";
 
 import { Clock, ArrowRight, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 interface IServiceProps {
   services: IService[];
 }
 
 const BrowsService = ({ services }: IServiceProps) => {
-  // const [searchTerm, setSearchTerm] = useState("");
-  // const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const route = useRouter();
+  const{data:session} = authClient.useSession();
+  const user = session?.user;
+
+  const router = useRouter();
   const serarchParams = useSearchParams();
 
   const searchTerm = serarchParams.get("search") || "";
@@ -42,7 +44,7 @@ const BrowsService = ({ services }: IServiceProps) => {
       params.set(key, value);
     }
     const queryString = params.toString();
-    route.replace(queryString ? `/services?${queryString}` : "/services",{scroll:false});
+    router.replace(queryString ? `/services?${queryString}` : "/services",{scroll:false});
     
   }
 
@@ -64,6 +66,13 @@ const BrowsService = ({ services }: IServiceProps) => {
       return matchesSearch && matchesCategory;
     });
   }, [services, searchTerm, selectedCategory]);
+
+  const handleViewDetails = (id: string) => {
+    if(!user){
+      router.push(`/sign-in?redirectTo=/services/${id}`);
+      return
+    }
+  };
 
   return (
     <section className="container mx-auto px-4 py-10">
@@ -158,7 +167,7 @@ const BrowsService = ({ services }: IServiceProps) => {
 
               {/* View Details */}
               <CardFooter>
-                <Button className="group h-12 w-full rounded-xl bg-rose-500 px-6 py-2.5 text-base font-semibold text-white shadow-md transition-all duration-300 hover:bg-blue-700 hover:shadow-lg">
+                {/* <Button className="group h-12 w-full rounded-xl bg-rose-500 px-6 py-2.5 text-base font-semibold text-white shadow-md transition-all duration-300 hover:bg-blue-700 hover:shadow-lg">
                   <Link
                     href={`/services/${service._id}`}
                     className="flex items-center justify-center gap-2"
@@ -166,6 +175,14 @@ const BrowsService = ({ services }: IServiceProps) => {
                     View Details
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
+                </Button> */}
+                <Button
+                  onClick={() => handleViewDetails(service._id)}
+                  className="group h-12 w-full rounded-xl bg-rose-500 px-6 py-2.5 text-base font-semibold text-white shadow-md transition-all duration-300 hover:bg-blue-700 hover:shadow-lg"
+                >
+                  View Details
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  
                 </Button>
               </CardFooter>
             </Card>
