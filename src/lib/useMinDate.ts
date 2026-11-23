@@ -1,0 +1,11 @@
+"use client";
+
+const useMinDate = () => {
+  const today = new Date();
+
+  return new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+};
+
+export default useMinDate;

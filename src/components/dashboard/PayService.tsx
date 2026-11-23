@@ -12,18 +12,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IBooking } from "@/type/booking";
+import { useRouter } from "next/navigation";
 
 interface IBookingProps {
   appointment:IBooking
 }
 
 const AppointmentDetails = ({ appointment }:IBookingProps) => {
+  const router = useRouter();
 
+  const paymentHref = `/payment?${new URLSearchParams({
+    bookingId: appointment._id,
+    service: appointment.serviceName,
+    price: String(appointment.price),
+    duration: String(appointment.duration),
+    date: appointment.date,
+    time: appointment.time,
+    email: appointment.customerEmail,
+    customer: appointment.customerName,
+  })}`;
 
   const handlePayment = () => {
-    console.log("Proceed to payment", appointment);
-    // Navigate to payment page
-    // Example: navigate("/payment");
+    router.push(paymentHref);
   };
 
   return (

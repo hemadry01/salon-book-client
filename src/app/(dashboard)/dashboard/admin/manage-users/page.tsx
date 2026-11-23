@@ -14,7 +14,7 @@ const ManageuserPage = async() => {
     let userData:IUser[]=[];
     try {
         const result = await fetch("http://localhost:8000/users", {
-          cache: "no-store",
+          next: { revalidate: 5 },
         });
 
         if (!result.ok) {

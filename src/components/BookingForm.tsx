@@ -1,27 +1,34 @@
 "use client";
-
-import { useState, FormEvent, use } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { IService } from "@/type/service";
+import { toast } from "./ui/toast";
+
 import {
   CalendarDays,
   Clock,
   User,
   Mail,
-  Phone,
   CheckCircle2,
   Tag,
   ArrowLeft,
   ArrowRight,
   Loader2,
 } from "lucide-react";
-import Link from "next/link";
-import { IService } from "@/type/service";
-import { authClient } from "@/lib/auth-client";
-import { toast } from "./ui/toast";
-import { useRouter } from "next/navigation";
+import useMinDate from "@/lib/useMinDate";
+
+interface IBookingUser {
+  id: string;
+  name: string;
+  email: string;
+}
 
 interface BookingFormProps {
   service: IService;
+  user: IBookingUser;
 }
 
 const timeSlots = [
@@ -37,26 +44,25 @@ const timeSlots = [
   "06:00 PM",
 ];
 
-const BookingForm = ({ service }: BookingFormProps) => {
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
+const BookingForm = ({ service, user }: BookingFormProps) => {
+  const router = useRouter();
+
+  // const { data: session } = authClient.useSession();
+  // const user = session?.user;
+
+  const [loading, setLoading] = useState(false);
+  // const [minDate, setMinDate] = useState("");
+
   const [formData, setFormData] = useState({
-    name: user?.name,
-    email: user?.email,
     appointmentDate: "",
     appointmentTime: "",
     specialRequest: "",
   });
 
-  const router = useRouter();
+  // Set minimum appointment date after component mounts
+  const minDate = useMinDate();
 
-  const [loading, setLoading] = useState(false);
-
-  const today = new Date();
-  const minDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
-    .toISOString()
-    .split("T")[0];
-
+  // Handle form changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -68,21 +74,60 @@ const BookingForm = ({ service }: BookingFormProps) => {
     }));
   };
 
+  // Convert 12-hour time to 24-hour time
+  const convertTime = (time: string) => {
+    const [clock, period] = time.split(" ");
+    const [parsedHours, minutes] = clock.split(":").map(Number);
+
+    let hours = parsedHours;
+
+    if (period === "PM" && hours !== 12) {
+      hours += 12;
+    }
+
+    if (period === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  };
+
+  // Submit booking
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (loading) return;
+
+    if (!user?.id || !user?.name || !user?.email) {
+      toast.add({
+        title: "Login Required",
+        description: "Please login before booking.",
+      });
+
+      return;
+    }
+
+    if (!formData.appointmentDate || !formData.appointmentTime) {
+      toast.add({
+        title: "Missing Information",
+        description: "Please select appointment date and time.",
+      });
+
+      return;
+    }
+
+    if (formData.appointmentDate < minDate || !minDate) {
+      toast.add({
+        title: "Invalid Date",
+        description: "Please select a valid appointment date.",
+      });
+
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const convertTime = (time: string) => {
-        const [clock, period] = time.split(" ");
-        const [parsedHours, minutes] = clock.split(":").map(Number);
-        let hours = parsedHours;
-
-        if (period === "PM" && hours !== 12) hours += 12;
-        if (period === "AM" && hours === 12) hours = 0;
-
-        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-      };
       const bookingData = {
         serviceId: service._id,
         userId: user?.id,
@@ -91,45 +136,8 @@ const BookingForm = ({ service }: BookingFormProps) => {
         date: formData.appointmentDate,
         time: convertTime(formData.appointmentTime),
         specialRequest: formData.specialRequest,
-
-        // status: "pending",
-        // paymentStatus: "unpaid",
-        // approved: false,
       };
-    //   const res = await fetch("http://localhost:8000/booking", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(bookingData),
-    //   });
 
-    //   const result = await res.json();
-
-    //   if (!res.ok) {
-    //     toast.add({
-    //       title: result.message,
-    //       description: "Booking failed",
-    //     });
-    //     return;
-    //   }
-
-    //   toast.add({
-    //     title: "Booking Status",
-    //     description: "Booking successful!",
-    //   });
-    //   router.push("/services");
-    //   router.refresh();
-    // } catch (error) {
-    //   console.error("Booking error:", error);
-
-    //   toast.add({
-    //     title: "Booking Status",
-    //     description: "Something went wrong!",
-    //   });
-    // } finally {
-    //   setLoading(false);
-    // }
       const res = await fetch("http://localhost:8000/booking", {
         method: "POST",
         headers: {
@@ -142,15 +150,16 @@ const BookingForm = ({ service }: BookingFormProps) => {
 
       if (!res.ok) {
         toast.add({
-          title: result.message || "Booking failed",
+          title: result.message || "Booking Failed",
           description: "Please try again.",
         });
+
         return;
       }
 
       toast.add({
-        title: "Booking Status",
-        description: "Booking successful!",
+        title: "Booking Successful",
+        description: "Your appointment request has been submitted.",
       });
 
       router.push("/services");
@@ -159,13 +168,15 @@ const BookingForm = ({ service }: BookingFormProps) => {
       console.error("Booking error:", error);
 
       toast.add({
-        title: "Booking Status",
-        description: "Something went wrong!",
+        title: "Booking Failed",
+        description: "Something went wrong. Please try again.",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  const imageUrl = service.image?.trim();
 
   return (
     <section className="min-h-screen bg-slate-50 py-10 md:py-16">
@@ -195,77 +206,54 @@ const BookingForm = ({ service }: BookingFormProps) => {
             <div className="space-y-7 lg:col-span-2">
               {/* Customer Information */}
               <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
-                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-bold text-gray-900">
-                        Customer Information
-                      </h2>
+                <div className="mb-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Customer Information
+                    </h2>
 
-                      <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-600">
-                        Logged In
-                      </span>
-                    </div>
+                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-600">
+                      Logged In
+                    </span>
+                  </div>
 
-                    <p className="mt-1 text-sm text-gray-400">
-                      Your account information is automatically added.
+                  <p className="mt-1 text-sm text-gray-400">
+                    Your account information is automatically added.
+                  </p>
+                </div>
+
+                {/* User Profile */}
+                <div className="mb-6 flex items-center gap-4 rounded-xl bg-blue-50 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                    <User className="h-6 w-6 text-blue-600" />
+                  </div>
+
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">
+                      {user?.name || "Loading user..."}
+                    </h3>
+
+                    <p className="text-xs text-gray-500">
+                      Authenticated Customer
                     </p>
                   </div>
 
-                  {/* User Profile */}
-                  <div className="mb-6 flex items-center gap-4 rounded-xl bg-blue-50 p-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                      <User className="h-6 w-6 text-blue-600" />
-                    </div>
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                </div>
 
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
-                        {user?.name || "User"}
-                      </h3>
+                {/* Email */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Email Address
+                  </label>
 
-                      <p className="text-xs text-gray-500">
-                        Authenticated Customer
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5">
+                    <Mail className="h-5 w-5 text-gray-400" />
 
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <span className="text-sm text-gray-600">
+                      {user?.email || "Email not available"}
+                    </span>
                   </div>
-
-                  {/* Email */}
-                  <div className="mb-5 space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">
-                      Email Address
-                    </label>
-
-                    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5">
-                      <Mail className="h-5 w-5 text-gray-400" />
-
-                      <span className="text-sm text-gray-600">
-                        {user?.email || "Email not available"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Phone */}
-                  {/* <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">
-                      Phone Number *
-                    </label>
-
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="Enter your phone number"
-                        required
-                        className="w-full rounded-xl border border-gray-200 py-3.5 pl-12 pr-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
-                      />
-                    </div>
-                  </div> */}
                 </div>
               </div>
 
@@ -275,6 +263,7 @@ const BookingForm = ({ service }: BookingFormProps) => {
                   <h2 className="text-xl font-bold text-gray-900">
                     Appointment Information
                   </h2>
+
                   <p className="mt-1 text-sm text-gray-400">
                     Choose your preferred date and time.
                   </p>
@@ -295,9 +284,10 @@ const BookingForm = ({ service }: BookingFormProps) => {
                     type="date"
                     name="appointmentDate"
                     value={formData.appointmentDate}
-                    min={minDate}
+                    min={minDate || undefined}
                     onChange={handleChange}
                     required
+                    disabled={!minDate}
                     className="w-full rounded-xl border border-gray-200 bg-white px-4 py-4 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
                   />
                 </div>
@@ -334,11 +324,15 @@ const BookingForm = ({ service }: BookingFormProps) => {
 
                 {/* Special Request */}
                 <div className="mt-7 space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">
+                  <label
+                    htmlFor="specialRequest"
+                    className="text-sm font-semibold text-gray-700"
+                  >
                     Special Request (Optional)
                   </label>
 
                   <textarea
+                    id="specialRequest"
                     name="specialRequest"
                     value={formData.specialRequest}
                     onChange={handleChange}
@@ -359,10 +353,10 @@ const BookingForm = ({ service }: BookingFormProps) => {
 
                 {/* Service Image */}
                 <div className="relative mb-5 h-48 overflow-hidden rounded-xl bg-gray-100">
-                  {service.image?.trim() ? (
+                  {imageUrl?.trim() ? (
                     <Image
-                      src={service.image}
-                      alt={service.name}
+                      src={imageUrl}
+                      alt={service.name || "Service image"}
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-cover"
@@ -374,6 +368,7 @@ const BookingForm = ({ service }: BookingFormProps) => {
                   )}
                 </div>
 
+                {/* Service Details */}
                 <div className="mb-5">
                   <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
                     {service.category}
@@ -388,6 +383,7 @@ const BookingForm = ({ service }: BookingFormProps) => {
                   </p>
                 </div>
 
+                {/* Booking Details */}
                 <div className="space-y-4 border-y border-gray-100 py-5">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-2 text-sm text-gray-500">
@@ -446,7 +442,7 @@ const BookingForm = ({ service }: BookingFormProps) => {
                 {/* Submit */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !minDate}
                   className="flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-5 py-4 font-semibold text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (

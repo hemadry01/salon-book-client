@@ -1,13 +1,11 @@
-
 import { Suspense } from "react";
 
 import ManageServicesTable from "@/components/dashboard/admin/ManageServicesTable";
 import type { IService } from "@/type/service";
 
 async function ServicesData() {
-  
   const res = await fetch("http://localhost:8000/admin/services", {
-    cache: "no-store",
+    next: { revalidate: 1},
   });
 
   if (!res.ok) {
@@ -16,19 +14,21 @@ async function ServicesData() {
 
   const serviceData = await res.json();
 
-  const serviceItem: IService[] = serviceData.data ?? [];
+  const serviceItem: IService[] = Array.isArray(serviceData.data)
+    ? serviceData.data
+    : [];
 
   return <ManageServicesTable serviceItem={serviceItem} />;
 }
 
-// Main page
-export default function ManageservicePage() {
+export default function ManageServicePage() {
   return (
-    <div>
-      <Suspense fallback={<p>Loading services...</p>}>
-        <ServicesData />
-      </Suspense>
-    </div>
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-gray-500">Loading services...</div>
+      }
+    >
+      <ServicesData />
+    </Suspense>
   );
 }
-

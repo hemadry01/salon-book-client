@@ -42,6 +42,17 @@ const formatCreatedAt = (date: string) => {
 };
 
 const AppointmentList = ({ appointment }: IBookingProps) => {
+  const paymentHref = `/payment?${new URLSearchParams({
+    bookingId: appointment._id,
+    service: appointment.serviceName,
+    price: String(appointment.price),
+    duration: String(appointment.duration),
+    date: appointment.date,
+    time: appointment.time,
+    email: appointment.customerEmail,
+    customer: appointment.customerName,
+  })}`;
+
   return (
     <TableRow className="hover:bg-slate-50">
       {/* Service Details */}
@@ -130,7 +141,7 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
       {/* Action */}
       <TableCell>
         <AppointmentDetails appointment={appointment} />
-        <Link href={"/payment"}>
+        <Link href={paymentHref}>
           <Button
             variant="outline"
             size="sm"

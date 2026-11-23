@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent, type SVGProps } from "react";
+import {
+  Suspense,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type SVGProps,
+} from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -74,18 +80,21 @@ const highlights = [
   "Rebook your favorite services in seconds",
 ];
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter();
-   const searchParams = useSearchParams();
-   const redirectTo = searchParams.get("redirectTo") ?? "/";
-   const serviceId = redirectTo.startsWith("/services/")
-     ? redirectTo.split("/")[2]
-     : null;
+  const searchParams = useSearchParams();
+
+  const redirectTo = searchParams.get("redirectTo") ?? "/";
+
+  const serviceId = redirectTo.startsWith("/services/")
+    ? redirectTo.split("/")[2]
+    : null;
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -121,58 +130,71 @@ export default function SignInPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     setError(null);
     setSuccess(null);
 
     if (!validate()) return;
+
+    setIsSubmitting(true);
+
     try {
-        const { data, error } = await signIn.email({
-          email: formData.email.trim(),
-          password: formData.password,
-          rememberMe,
-          callbackURL: redirectTo, // An optional URL to redirect to after the user signs in. (optional)
-        });
+      const { data, error } = await signIn.email({
+        email: formData.email.trim(),
+        password: formData.password,
+        rememberMe,
+        callbackURL: redirectTo,
+      });
 
-        if(error){
-            toast.add({
-              type: "error",
-              title: "Signin failed!",
-              description:
-                error instanceof Error
-                  ? error.message
-                  : "Something went wrong. Please try again.",
-            });
-        }
-
-        if(data){
-            toast.add({
-              title: "Welcome back!",
-              description: "You have successfully signed in to SalonBook.",
-            });
-            //router.replace(redirectTo);
-        }
-
-        
-    } catch (error) {
+      if (error) {
         toast.add({
-          title: "Something went wrong",
-          description: "Unable to sign in. Please try again later.",
+          type: "error",
+          title: "Signin failed!",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Something went wrong. Please try again.",
         });
+
+        return;
+      }
+
+      if (data) {
+        toast.add({
+          title: "Welcome back!",
+          description: "You have successfully signed in to SalonBook.",
+        });
+
+        router.replace(redirectTo);
+        router.refresh();
+      }
+    } catch (error) {
+      toast.add({
+        title: "Something went wrong",
+        description: "Unable to sign in. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    const data = await signIn.social({
-         provider: "google",
-       });
-       if(data){
-          toast.add({
-            title: "Account created successfully!",
-            description: "Welcome to SalonBook. Your account is ready.",
-          });
-    
-          router.push("/");
-       } 
+    setIsGoogleLoading(true);
+
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: redirectTo,
+      });
+    } catch {
+      toast.add({
+        type: "error",
+        title: "Google sign-in failed",
+        description: "Please try again later.",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -188,7 +210,9 @@ export default function SignInPage() {
             <span className="grid size-10 place-items-center rounded-xl bg-white/10 ring-1 ring-white/20 backdrop-blur">
               <Scissors className="size-5" />
             </span>
-            <span className="text-lg font-semibold tracking-tight">SalonBook</span>
+            <span className="text-lg font-semibold tracking-tight">
+              SalonBook
+            </span>
           </div>
 
           <div className="relative z-10 space-y-7">
@@ -212,7 +236,10 @@ export default function SignInPage() {
 
             <ul className="space-y-3">
               {highlights.map((highlight) => (
-                <li key={highlight} className="flex items-center gap-3 text-sm text-white/80">
+                <li
+                  key={highlight}
+                  className="flex items-center gap-3 text-sm text-white/80"
+                >
                   <span className="grid size-5 shrink-0 place-items-center rounded-full bg-white/10 ring-1 ring-white/15">
                     <Check className="size-3" />
                   </span>
@@ -228,7 +255,9 @@ export default function SignInPage() {
                 <CalendarCheck className="size-5" />
               </span>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Your next appointment is waiting</p>
+                <p className="text-sm font-medium">
+                  Your next appointment is waiting
+                </p>
                 <p className="text-xs leading-5 text-white/60">
                   Sign in to view booking details, reschedule or leave a review.
                 </p>
@@ -351,7 +380,9 @@ export default function SignInPage() {
                         <InputGroupButton
                           type="button"
                           size="icon-sm"
-                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
                           onClick={() => setShowPassword((visible) => !visible)}
                         >
                           {showPassword ? <EyeOff /> : <Eye />}
@@ -361,11 +392,16 @@ export default function SignInPage() {
                     <FieldError>{fieldErrors.password}</FieldError>
                   </Field>
 
-                  <Field orientation="horizontal" className="w-auto items-center gap-2">
+                  <Field
+                    orientation="horizontal"
+                    className="w-auto items-center gap-2"
+                  >
                     <Checkbox
                       id="rememberMe"
                       checked={rememberMe}
-                      onCheckedChange={(checked) => setRememberMe(checked === true)}
+                      onCheckedChange={(checked) =>
+                        setRememberMe(checked === true)
+                      }
                     />
                     <FieldLabel
                       htmlFor="rememberMe"
@@ -415,5 +451,19 @@ export default function SignInPage() {
         </div>
       </Card>
     </main>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-dvh items-center justify-center bg-muted/30">
+          <Spinner className="size-6" />
+        </main>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }
