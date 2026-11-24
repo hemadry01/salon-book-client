@@ -1,11 +1,9 @@
-import { connection } from "next/server";
 
 import BookingManagement from "@/components/dashboard/admin/BookingManagement";
 import type { IBooking } from "@/type/booking";
 
 const ManageBooking = async () => {
-  // Render at request time so bookings are always up to date.
-  // await connection();
+ 
 
   let bookings: IBooking[] = [];
 

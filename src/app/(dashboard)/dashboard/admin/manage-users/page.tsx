@@ -73,9 +73,11 @@ const ManageuserPage = async () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -83,7 +85,7 @@ const ManageuserPage = async () => {
           <TableBody>
             {userData.length > 0 ? (
               userData.map((users) => (
-                <UserManagement key={users._id.toString()} users={users} />
+                <UserManagement key={users._id} users={users} />
               ))
             ) : (
               <TableRow>

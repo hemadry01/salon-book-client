@@ -96,9 +96,7 @@ const AppointmentDetails = ({ appointment }:IBookingProps) => {
 
               <tr className="border-b">
                 <td className="py-3">Service Price</td>
-                <td className="py-3 font-medium">
-                  ৳{appointment.price}
-                </td>
+                <td className="py-3 font-medium">৳{appointment.price}</td>
               </tr>
             </tbody>
           </table>
@@ -110,7 +108,7 @@ const AppointmentDetails = ({ appointment }:IBookingProps) => {
             Close
           </AlertDialogCancel>
 
-          {appointment.paymentStatus === "unpaid" && (
+          {appointment.status === "confirmed" && (
             <AlertDialogAction
               onClick={handlePayment}
               className="rounded-full bg-green-600 hover:bg-green-700 text-white px-6"

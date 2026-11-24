@@ -4,4 +4,5 @@
    email: string;
    image: string;
    role: string;
+   isBlocked: boolean;
  }

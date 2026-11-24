@@ -1,11 +1,17 @@
 import { IBooking } from "@/type/booking";
-
 import { TableCell, TableRow } from "@/components/ui/table";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { CalendarDays, Clock, Eye, Scissors } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  Eye,
+  Scissors,
+  CreditCard,
+  XCircle,
+} from "lucide-react";
+
 import AppointmentDetails from "./PayService";
 import Link from "next/link";
 
@@ -54,11 +60,11 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
   })}`;
 
   return (
-    <TableRow className="hover:bg-slate-50">
-      {/* Service Details */}
+    <TableRow className="group border-b border-slate-100 transition-colors hover:bg-indigo-50/40">
+      {/* Service */}
       <TableCell>
         <div className="flex min-w-[180px] items-center gap-3">
-          <div className="flex h-11 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-100 transition-colors group-hover:bg-indigo-200">
             <Scissors className="h-5 w-5 text-indigo-600" />
           </div>
 
@@ -66,48 +72,48 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
             <p className="text-sm font-semibold text-slate-800">
               {appointment.serviceName}
             </p>
-
-            {/* <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               {appointment.duration} minutes
-            </p> */}
+            </p>
           </div>
         </div>
       </TableCell>
 
-      {/* Appointment Date & Time */}
+      {/* Date & Time */}
       <TableCell>
-        <div className="flex min-w-[145px] items-start gap-2">
-          <CalendarDays className="mt-0.5 h-4 w-4 text-slate-500" />
-
-          <div>
-            <p className="text-sm text-slate-700">
+        <div className="min-w-[145px] space-y-1">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-indigo-500" />
+            <span className="text-sm font-medium text-slate-700">
               {formatDate(appointment.date)}
-            </p>
+            </span>
+          </div>
 
-            <p className="flex items-center gap-1 text-xs text-slate-500">
-              <Clock className="h-3 w-3" />
+          <div className="flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-xs text-slate-500">
               {formatTime(appointment.time)}
-            </p>
+            </span>
           </div>
         </div>
       </TableCell>
 
       {/* Price */}
       <TableCell>
-        <span className="text-sm font-semibold text-slate-800">
+        <span className="text-sm font-bold text-slate-800">
           ৳{appointment.price}
         </span>
       </TableCell>
 
-      {/* Status */}
+      {/* Appointment Status */}
       <TableCell>
         <Badge
-          className={`rounded-full border-0 px-3 py-1 capitalize ${
+          className={`rounded-full border px-3 py-1 text-xs font-medium capitalize shadow-none ${
             appointment.status === "pending"
-              ? "bg-orange-100 text-orange-600 hover:bg-orange-100"
+              ? "border-orange-200 bg-orange-50 text-orange-600"
               : appointment.status === "confirmed"
-                ? "bg-green-100 text-green-600 hover:bg-green-100"
-                : "bg-red-100 text-red-600 hover:bg-red-100"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-600"
+                : "border-red-200 bg-red-50 text-red-600"
           }`}
         >
           {appointment.status}
@@ -117,10 +123,10 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
       {/* Payment Status */}
       <TableCell>
         <Badge
-          className={`rounded-full border-0 px-3 py-1 capitalize ${
+          className={`rounded-full border px-3 py-1 text-xs font-medium capitalize shadow-none ${
             appointment.paymentStatus === "paid"
-              ? "bg-green-100 text-green-600 hover:bg-green-100"
-              : "bg-pink-100 text-pink-600 hover:bg-pink-100"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-600"
+              : "border-pink-200 bg-pink-50 text-pink-600"
           }`}
         >
           {appointment.paymentStatus}
@@ -130,27 +136,42 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
       {/* Request Date */}
       <TableCell>
         <div className="flex min-w-[130px] items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-slate-500" />
-
-          <p className="text-sm text-slate-700">
+          <CalendarDays className="h-4 w-4 text-slate-400" />
+          <span className="text-sm text-slate-600">
             {formatCreatedAt(appointment.createdAt)}
-          </p>
+          </span>
         </div>
       </TableCell>
 
-      {/* Action */}
+      {/* Actions */}
       <TableCell>
-        <AppointmentDetails appointment={appointment} />
-        <Link href={paymentHref}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="whitespace-nowrap border-blue-500 text-blue-600 hover:bg-blue-50"
-          >
-            <Eye className="mr-1 h-4 w-4" />
-            payment
-          </Button>
-        </Link>
+        <div className="flex min-w-[190px] items-center gap-2">
+          <AppointmentDetails appointment={appointment} />
+
+          {appointment.status === "confirmed" &&
+            appointment.paymentStatus !== "paid" && (
+              <Link href={paymentHref}>
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs text-white shadow-sm hover:bg-indigo-700"
+                >
+                  <CreditCard className="h-3.5 w-3.5" />
+                  Payment
+                </Button>
+              </Link>
+            )}
+
+          {appointment.status === "pending" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 rounded-lg border-red-200 px-3 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              Cancel
+            </Button>
+          )}
+        </div>
       </TableCell>
     </TableRow>
   );
