@@ -19,13 +19,20 @@ const BookingContent = async ({ params }: BookingPageProps) => {
    }
 
    // Get logged-in user
+   const reqHeaders = await headers();
+
    const session = await auth.api.getSession({
-     headers: await headers(),
+     headers: reqHeaders,
    });
 
    if (!session?.user) {
      redirect("/sign-in");
    }
+
+   // JWT for the Express backend
+   const { token } = await auth.api.getToken({
+     headers: reqHeaders,
+   });
 
   const res = await fetch(`http://localhost:8000/service/${id}`, {
     next: { revalidate: 60 },
@@ -49,8 +56,7 @@ const BookingContent = async ({ params }: BookingPageProps) => {
      email: session.user.email,
    };
 
-  // return <BookingForm service={service} />;
-  return <BookingForm service={service} user={user} />;
+  return <BookingForm service={service} user={user} token={token} />;
 };
 
 const BookingPage = (props: BookingPageProps) => {

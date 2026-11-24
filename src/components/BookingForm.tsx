@@ -29,6 +29,7 @@ interface IBookingUser {
 interface BookingFormProps {
   service: IService;
   user: IBookingUser;
+  token: string;
 }
 
 const timeSlots = [
@@ -44,7 +45,7 @@ const timeSlots = [
   "06:00 PM",
 ];
 
-const BookingForm = ({ service, user }: BookingFormProps) => {
+const BookingForm = ({ service, user, token }: BookingFormProps) => {
   const router = useRouter();
 
   // const { data: session } = authClient.useSession();
@@ -130,9 +131,6 @@ const BookingForm = ({ service, user }: BookingFormProps) => {
     try {
       const bookingData = {
         serviceId: service._id,
-        userId: user?.id,
-        customerName: user?.name,
-        customerEmail: user?.email,
         date: formData.appointmentDate,
         time: convertTime(formData.appointmentTime),
         specialRequest: formData.specialRequest,
@@ -142,6 +140,7 @@ const BookingForm = ({ service, user }: BookingFormProps) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(bookingData),
       });

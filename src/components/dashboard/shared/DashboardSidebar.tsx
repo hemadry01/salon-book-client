@@ -65,6 +65,11 @@ const roleBaseSidebarItem = {
       icon: BriefcaseBusiness,
     },
     {
+      title: "Manage Booking",
+      href: "/dashboard/admin/manage-booking",
+      icon: BriefcaseBusiness,
+    },
+    {
       title: "Add Service",
       href: "/dashboard/admin/manage-services/add-service",
       icon: PlusCircle,
