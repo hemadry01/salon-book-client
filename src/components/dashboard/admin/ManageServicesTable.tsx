@@ -1,7 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import {Plus, Eye, Trash2, Trash2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Eye, Loader2, Plus, Trash2, Trash2Icon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -13,12 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import { IService } from "@/type/service";
-import Image from "next/image";
-import { useState } from "react";
-
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,63 +28,97 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
-import UpdateServiceData from "./UpdateServiceData";
-import { connection } from "next/server";
+import { API_BASE_URL } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import type { IService } from "@/type/service";
 
-interface IServiceProps{
-  serviceItem:IService[]
+import UpdateServiceData from "./UpdateServiceData";
+
+interface IServiceProps {
+  serviceItem: IService[];
 }
 
-const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
+const ITEMS_PER_PAGE = 10;
 
-  console.log(serviceItem);
-  const[currentPage, setCurrentPage]=useState(1);
-  const[openDialog, setOpenDialog] =useState<string | null>(null)
-  const itemsPerPage = 10;
+const ManageServicesTable = ({ serviceItem }: IServiceProps) => {
+  const router = useRouter();
 
-  const totalPages = Math.ceil(
-    serviceItem.length / itemsPerPage
+  // Ids removed locally so a deleted row disappears immediately, while
+  // `router.refresh()` re-syncs the list with the server.
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [openDialog, setOpenDialog] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [viewService, setViewService] = useState<IService | null>(null);
+
+  const allServices = Array.isArray(serviceItem) ? serviceItem : [];
+  const services = allServices.filter(
+    (service) => !deletedIds.has(service._id),
   );
 
-  const startIndex = (currentPage - 1)*itemsPerPage;
-  const currentServices = serviceItem.slice(
+  const totalPages = Math.max(1, Math.ceil(services.length / ITEMS_PER_PAGE));
+
+  // Clamp during render so deleting the last row of a page falls back to the
+  // previous page without an extra state update.
+  const currentPageSafe = Math.min(currentPage, totalPages);
+
+  const startIndex = (currentPageSafe - 1) * ITEMS_PER_PAGE;
+  const currentServices = services.slice(
     startIndex,
-    startIndex + itemsPerPage,
+    startIndex + ITEMS_PER_PAGE,
   );
+  const showingFrom = services.length === 0 ? 0 : startIndex + 1;
+  const showingTo = Math.min(startIndex + ITEMS_PER_PAGE, services.length);
 
-  const handledeleteData = async (id: string) => {
-    //console.log(serviceItem.);
-    await connection();
+  const handleDeleteData = async (service: IService) => {
+    setDeletingId(service._id);
+
     try {
       const res = await fetch(
-        `http://localhost:8000/admin/service/${id}`,
-        {
-          method: "DELETE",
-        },
+        `${API_BASE_URL}/admin/service/${service._id}`,
+        { method: "DELETE" },
       );
-      const result = await res.json();
-      if (!res.ok) {
-        throw new Error(result.message);
-      }
-      toast.add({
-        title: "Delete Service",
-        description: "Service deleted successfully!",
-      });
 
+      const result = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(result?.message || "Failed to delete service");
+      }
+
+      setDeletedIds((prev) => new Set(prev).add(service._id));
       setOpenDialog(null);
 
-      window.location.reload();
+      toast.add({
+        type: "success",
+        title: "Service deleted",
+        description: `"${service.name}" was deleted successfully.`,
+      });
 
+      router.refresh();
     } catch (error) {
       toast.add({
         type: "error",
-        title: "Deleted service failed!",
+        title: "Delete failed",
         description:
           error instanceof Error
             ? error.message
             : "Something went wrong. Please try again.",
       });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -142,140 +173,254 @@ const ManageServicesTable = ({ serviceItem }:IServiceProps) => {
               </TableHeader>
 
               <TableBody>
-                {currentServices.map((service, index) => (
-                  <TableRow key={service._id}>
-                    <TableCell className="pl-6 text-slate-500">
-                      {index + 1}
-                    </TableCell>
-
-                    <TableCell>
-                      <Image
-                        src={service.image}
-                        alt={service.name}
-                        width={48}
-                        height={48}
-                        className="size-12 rounded-lg border object-cover"
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      <p className="font-medium text-slate-900">
-                        {service.name}
-                      </p>
-                      {/* <p className="mt-1 max-w-40 truncate text-xs text-slate-500">
-                        {service.description}
-                      </p> */}
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge className="border-0 bg-indigo-50 text-indigo-600 hover:bg-indigo-50">
-                        {service.category}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="font-semibold text-slate-700">
-                      ৳ {service.price}
-                    </TableCell>
-
-                    <TableCell className="text-slate-600">
-                      {service.duration} min
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge
-                        className={
-                          service.active
-                            ? "gap-1 border-0 bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-                            : "gap-1 border-0 bg-red-100 text-red-700 hover:bg-red-100"
-                        }
+                {currentServices.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="py-12 text-center text-sm text-slate-500"
+                    >
+                      No services found.{" "}
+                      <Link
+                        href="/dashboard/admin/manage-services/add-service"
+                        className="font-medium text-violet-600 hover:underline"
                       >
-                        {/* <Check className="size-3" /> */}
-                        {service.active === true ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="pr-6">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="size-8"
-                          aria-label="View service"
-                        >
-                          <Eye className="size-4" />
-                        </Button>
-                        <UpdateServiceData service={service} />
-                        <AlertDialog>
-                          <AlertDialogTrigger
-                            render={
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="size-8 text-red-500"
-                                aria-label="Delete service"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            }
-                          />
-                          <AlertDialogContent size="sm">
-                            <AlertDialogHeader>
-                              <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-                                <Trash2Icon />
-                              </AlertDialogMedia>
-                              <AlertDialogTitle>
-                                Delete service?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete `{service.name}`
-                                ? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel variant="outline">
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handledeleteData(service._id);
-                                }}
-                                variant="destructive"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                        Add your first service
+                      </Link>
+                      .
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  currentServices.map((service, index) => {
+                    const isDeleting = deletingId === service._id;
+
+                    return (
+                      <TableRow key={service._id}>
+                        <TableCell className="pl-6 text-slate-500">
+                          {startIndex + index + 1}
+                        </TableCell>
+
+                        <TableCell>
+                          <Image
+                            src={service.image}
+                            alt={service.name}
+                            width={48}
+                            height={48}
+                            className="size-12 rounded-lg border object-cover"
+                          />
+                        </TableCell>
+
+                        <TableCell>
+                          <p className="font-medium text-slate-900">
+                            {service.name}
+                          </p>
+                          {service.description ? (
+                            <p className="mt-1 max-w-40 truncate text-xs text-slate-500">
+                              {service.description}
+                            </p>
+                          ) : null}
+                        </TableCell>
+
+                        <TableCell>
+                          <Badge className="border-0 bg-indigo-50 text-indigo-600 hover:bg-indigo-50">
+                            {service.category}
+                          </Badge>
+                        </TableCell>
+
+                        <TableCell className="font-semibold text-slate-700">
+                          ৳ {service.price}
+                        </TableCell>
+
+                        <TableCell className="text-slate-600">
+                          {service.duration} min
+                        </TableCell>
+
+                        <TableCell>
+                          <Badge
+                            className={cn(
+                              "gap-1 border-0",
+                              service.active
+                                ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                                : "bg-red-100 text-red-700 hover:bg-red-100",
+                            )}
+                          >
+                            {service.active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+
+                        <TableCell className="pr-6">
+                          <div className="flex items-center gap-2">
+                            <Dialog
+                              open={viewService?._id === service._id}
+                              onOpenChange={(open) =>
+                                setViewService(open ? service : null)
+                              }
+                            >
+                              <DialogTrigger
+                                render={
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="size-8"
+                                    aria-label={`View ${service.name}`}
+                                  >
+                                    <Eye className="size-4" />
+                                  </Button>
+                                }
+                              />
+                              <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>{service.name}</DialogTitle>
+                                  <DialogDescription>
+                                    {service.category}
+                                  </DialogDescription>
+                                </DialogHeader>
+
+                                <Image
+                                  src={service.image}
+                                  alt={service.name}
+                                  width={400}
+                                  height={220}
+                                  className="h-44 w-full rounded-lg border object-cover"
+                                />
+
+                                <p className="text-sm text-muted-foreground">
+                                  {service.description ||
+                                    "No description provided."}
+                                </p>
+
+                                <dl className="grid grid-cols-2 gap-3 text-sm">
+                                  <div className="rounded-lg border p-3">
+                                    <dt className="text-xs text-muted-foreground">
+                                      Price
+                                    </dt>
+                                    <dd className="font-semibold text-slate-800">
+                                      ৳ {service.price}
+                                    </dd>
+                                  </div>
+                                  <div className="rounded-lg border p-3">
+                                    <dt className="text-xs text-muted-foreground">
+                                      Duration
+                                    </dt>
+                                    <dd className="font-semibold text-slate-800">
+                                      {service.duration} min
+                                    </dd>
+                                  </div>
+                                </dl>
+
+                                <DialogFooter>
+                                  <DialogClose
+                                    render={
+                                      <Button variant="outline">Close</Button>
+                                    }
+                                  />
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+
+                            <UpdateServiceData service={service} />
+
+                            <AlertDialog
+                              open={openDialog === service._id}
+                              onOpenChange={(open) =>
+                                setOpenDialog(open ? service._id : null)
+                              }
+                            >
+                              <AlertDialogTrigger
+                                render={
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="size-8 text-red-500"
+                                    aria-label={`Delete ${service.name}`}
+                                    disabled={isDeleting}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
+                                }
+                              />
+                              <AlertDialogContent size="sm">
+                                <AlertDialogHeader>
+                                  <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                                    <Trash2Icon />
+                                  </AlertDialogMedia>
+                                  <AlertDialogTitle>
+                                    Delete service?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete{" "}
+                                    <span className="font-medium text-foreground">
+                                      {service.name}
+                                    </span>
+                                    ? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel
+                                    variant="outline"
+                                    disabled={isDeleting}
+                                  >
+                                    Cancel
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    variant="destructive"
+                                    disabled={isDeleting}
+                                    onClick={() => handleDeleteData(service)}
+                                  >
+                                    {isDeleting ? (
+                                      <>
+                                        <Loader2 className="size-4 animate-spin" />
+                                        Deleting...
+                                      </>
+                                    ) : (
+                                      "Delete"
+                                    )}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
               </TableBody>
             </Table>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 mt-6 p-2">
-            <button
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border rounded disabled:opacity-50"
-            >
-              Previous
-            </button>
+          <div className="flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-500">
+              Showing {showingFrom}-{showingTo} of {services.length} services
+            </p>
 
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.max(1, prev - 1))
+                }
+                disabled={currentPageSafe === 1}
+              >
+                Previous
+              </Button>
 
-            <button
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 border rounded disabled:opacity-50"
-            >
-              Next
-            </button>
+              <span className="text-sm text-slate-600">
+                Page {currentPageSafe} of {totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPageSafe >= totalPages}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </div>
       </div>

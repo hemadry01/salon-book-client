@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ImagePlus, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import { API_BASE_URL } from "@/lib/api";
 
 const categories = [
   "Haircut & Styling",
@@ -134,7 +135,7 @@ export default function AddService() {
           image,
         };
 
-        const res = await fetch(`${process.env.BASE_URL}/admin/add-service`, {
+        const res = await fetch(`${API_BASE_URL}/admin/add-service`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

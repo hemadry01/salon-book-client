@@ -31,6 +31,7 @@ import { Switch } from "@/components/ui/switch";
 import { Pencil } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/api";
 
 interface EditServiceDataProps {
   service: IService;
@@ -129,7 +130,7 @@ function EditServiceDataForm({ service, onUpdated }: EditServiceDataProps) {
       }
 
       const res = await fetch(
-        `${process.env.BASE_URL}/admin/service/${service._id}`,
+        `${API_BASE_URL}/admin/service/${service._id}`,
         {
           method: "PATCH",
           headers: {

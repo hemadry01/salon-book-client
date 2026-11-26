@@ -55,7 +55,7 @@ async function ManageUsersContent() {
     try {
       data = responseText ? JSON.parse(responseText) : {};
     } catch {
-      throw new Error("Backend থেকে valid JSON response আসেনি।");
+    
     }
     userData = Array.isArray(data?.data) ? data.data : [];
   } catch (error) {

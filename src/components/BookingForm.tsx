@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,6 @@ interface IBookingUser {
 interface BookingFormProps {
   service: IService;
   user: IBookingUser;
-  token: string;
 }
 
 const timeSlots = [
@@ -45,7 +44,7 @@ const timeSlots = [
   "06:00 PM",
 ];
 
-const BookingForm = ({ service, user, token }: BookingFormProps) => {
+const BookingForm = ({ service, user}: BookingFormProps) => {
   const router = useRouter();
 
   // const { data: session } = authClien.useSession();
@@ -94,86 +93,103 @@ const BookingForm = ({ service, user, token }: BookingFormProps) => {
   };
 
   // Submit booking
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+ 
 
-    if (loading) return;
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    if (!user?.id || !user?.name || !user?.email) {
+  if (loading) return;
+
+  if (!user?.id || !user?.email) {
+    toast.add({
+      title: "Login Required",
+      description: "Please login before booking.",
+    });
+    return;
+  }
+
+  if (!formData.appointmentDate || !formData.appointmentTime) {
+    toast.add({
+      title: "Missing Information",
+      description: "Please select appointment date and time.",
+    });
+    return;
+  }
+
+  if (!minDate || formData.appointmentDate < minDate) {
+    toast.add({
+      title: "Invalid Date",
+      description: "Please select a valid appointment date.",
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const bookingData = {
+      serviceId: service._id,
+      date: formData.appointmentDate,
+      time: convertTime(formData.appointmentTime),
+      specialRequest: formData.specialRequest,
+    };
+
+    // Call Next.js API
+  
+const res = await fetch("/api/booking", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(bookingData),
+});
+
+// const result = await res.json().catch(() => null);
+
+// if (!res.ok || !result?.success) {
+//   toast.add({
+//     title: result?.message || "Booking Failed",
+//     description: "Please try again.",
+//   });
+//   return;
+// }
+
+    const result = await res.json().catch(() => null);
+
+    if (!res.ok) {
       toast.add({
-        title: "Login Required",
-        description: "Please login before booking.",
+        title: result?.message || "Booking Failed",
+        description: "Please try again.",
       });
-
       return;
     }
 
-    if (!formData.appointmentDate || !formData.appointmentTime) {
-      toast.add({
-        title: "Missing Information",
-        description: "Please select appointment date and time.",
-      });
+    toast.add({
+      title: "Booking Successful",
+      description: "Your appointment request has been submitted.",
+    });
 
-      return;
-    }
+    setFormData({
+      appointmentDate: "",
+      appointmentTime: "",
+      specialRequest: "",
+    });
 
-    if (formData.appointmentDate < minDate || !minDate) {
-      toast.add({
-        title: "Invalid Date",
-        description: "Please select a valid appointment date.",
-      });
+    router.push("/services");
+    router.refresh();
+  } catch (error) {
+    console.error("Booking error:", error);
 
-      return;
-    }
+    toast.add({
+      title: "Booking Failed",
+      description: "Something went wrong. Please try again.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
-    setLoading(true);
 
-    try {
-      const bookingData = {
-        serviceId: service._id,
-        date: formData.appointmentDate,
-        time: convertTime(formData.appointmentTime),
-        specialRequest: formData.specialRequest,
-      };
-
-      const res = await fetch("http://localhost:8000/booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(bookingData),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        toast.add({
-          title: result.message || "Booking Failed",
-          description: "Please try again.",
-        });
-
-        return;
-      }
-
-      toast.add({
-        title: "Booking Successful",
-        description: "Your appointment request has been submitted.",
-      });
-
-      router.push("/services");
-      router.refresh();
-    } catch (error) {
-      console.error("Booking error:", error);
-
-      toast.add({
-        title: "Booking Failed",
-        description: "Something went wrong. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const imageUrl = service.image?.trim();
 

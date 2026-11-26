@@ -53,7 +53,7 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
     //alert("delete data")
     try {
       const res = await fetch(
-        `${process.env.BASE_URL}/booking/${appointment._id}`,
+        `http://localhost:8000/booking/${appointment._id}`,
         {
           method: "DELETE",
           headers: {
@@ -62,6 +62,7 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
         },
       );
       const data = await res.json();
+    
 
       if (!res.ok) {
         console.log(data.message || "Delete failed");

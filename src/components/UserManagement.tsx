@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { Ban, CheckCircle, MoreHorizontal } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import { API_BASE_URL } from "@/lib/api";
 
 interface IUserProps {
   users: IUser;
@@ -25,7 +26,7 @@ const UserManagement = ({ users }: IUserProps) => {
   const handleBlockStatus = async() => {
     const newStatus = !users.isBlocked
     const res = await fetch(
-      `${process.env.BASE_URL}/admin/user/${users._id}/status`,
+      `${API_BASE_URL}/admin/user/${users._id}/status`,
       {
         method: "PATCH",
         headers: {

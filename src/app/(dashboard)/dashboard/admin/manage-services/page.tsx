@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 
 import ManageServicesTable from "@/components/dashboard/admin/ManageServicesTable";
+import { API_BASE_URL } from "@/lib/api";
 import type { IService } from "@/type/service";
 
 async function ServicesData() {
-  const res = await fetch(`${process.env.BASE_URL}/admin/services`, {
+  const res = await fetch(`${API_BASE_URL}/admin/services`, {
     next: { revalidate: 1 },
   });
 

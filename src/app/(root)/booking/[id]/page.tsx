@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import BookingForm from "@/components/BookingForm";
+import { authClient } from "@/lib/auth-client";
 
 interface BookingPageProps {
   params: Promise<{ id: string }>;
@@ -30,9 +31,11 @@ const BookingContent = async ({ params }: BookingPageProps) => {
    }
 
    // JWT for the Express backend
-   const { token } = await auth.api.getToken({
-     headers: reqHeaders,
-   });
+  //  const { token } = await auth.api.getToken({
+  //    headers: reqHeaders,
+  //  });
+  //  const {data:session}=authClient.useSession()
+ 
 
   const res = await fetch(`http://localhost:8000/service/${id}`, {
     next: { revalidate: 60 },
@@ -56,7 +59,7 @@ const BookingContent = async ({ params }: BookingPageProps) => {
      email: session.user.email,
    };
 
-  return <BookingForm service={service} user={user} token={token} />;
+  return <BookingForm service={service} user={user}/>;
 };
 
 const BookingPage = (props: BookingPageProps) => {

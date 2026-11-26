@@ -11,8 +11,11 @@ import { Badge } from "@/components/ui/badge";
 
 import { Camera, UserRound, Mail, Phone } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/toast";
 
 export default function MyProfile() {
+  const router = useRouter();
   const { data: session } = authClient.useSession();
   const info = session?.user;
 
@@ -39,7 +42,6 @@ export default function MyProfile() {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -117,7 +119,8 @@ export default function MyProfile() {
       };
 
       const response = await fetch(
-        `http://localhost:8000/profile/update/${info.id}`,
+        // `http://localhost:8000/profile/update/${info.id}`,
+        `${process.env.PUBLIC_NEXT_URL}/profile/update/${info.id}`,
         {
           method: "PATCH",
           headers: {
@@ -131,6 +134,15 @@ export default function MyProfile() {
 
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Profile update failed.");
+      }
+
+      if (result) {
+        router.push("/");
+        router.refresh();
+        toast.add({
+          title: "Success",
+          description: "Profile Update Successful",
+        });
       }
 
       setFullName(updatedData.name);

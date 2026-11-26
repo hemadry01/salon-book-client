@@ -27,7 +27,6 @@ interface ITransaction {
   createdAt?: string;
 }
 
-const API_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 const statusStyles: Record<string, string> = {
   paid: "bg-emerald-50 text-emerald-600 ring-emerald-200/70",
@@ -112,19 +111,12 @@ async function TransactionsContent() {
   let errorMessage: string | null = null;
 
   try {
-    const res = await fetch(`${API_URL}/admin/payment/transactions`);
+    const res = await fetch(`${process.env.BASE_URL}/admin/payment/transactions`);
 
     const result = await res.json();
 
-    transactions = Array.isArray(result?.data)
-      ? result.data
-      : Array.isArray(result?.transactions)
-        ? result.transactions
-        : Array.isArray(result)
-          ? result
-          : [];
+    transactions = result.data || [];
   } catch (error) {
-    console.error("Transactions fetch error:", error);
 
     errorMessage =
       error instanceof Error ? error.message : "Unable to load transactions.";

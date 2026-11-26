@@ -1,5 +1,6 @@
 import React from 'react';
 import { IService } from '@/type/service';
+import { API_BASE_URL } from '@/lib/api';
 
 import ServiceDesplayLimit from './ServiceDesplayLimit';
 
@@ -9,7 +10,7 @@ const ServiceDesplay = async() => {
 
     let serviceData: IService[] = [];
       try {
-        const res = await fetch(`${process.env.BASE_URL}/sevices/limit`, {
+        const res = await fetch(`${API_BASE_URL}/sevices/limit`, {
           next: { revalidate: 60 },
         });
     
