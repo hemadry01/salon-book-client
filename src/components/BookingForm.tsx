@@ -48,7 +48,7 @@ const timeSlots = [
 const BookingForm = ({ service, user, token }: BookingFormProps) => {
   const router = useRouter();
 
-  // const { data: session } = authClient.useSession();
+  // const { data: session } = authClien.useSession();
   // const user = session?.user;
 
   const [loading, setLoading] = useState(false);

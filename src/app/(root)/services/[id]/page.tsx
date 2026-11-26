@@ -52,9 +52,7 @@ const ServiceContent = async ({ params }: IServicedetailProps) => {
     notFound();
   }
 
-  const res = await fetch(`http://localhost:8000/service/${id}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(`http://localhost:8000/service/${id}`);
 
   if (res.status === 404) {
     notFound();

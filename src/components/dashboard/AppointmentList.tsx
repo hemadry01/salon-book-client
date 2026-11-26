@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
   Clock,
-  Eye,
   Scissors,
   CreditCard,
   XCircle,
@@ -14,6 +13,7 @@ import {
 
 import AppointmentDetails from "./PayService";
 import Link from "next/link";
+import { toast } from "../ui/toast";
 
 interface IBookingProps {
   appointment: IBooking;
@@ -48,16 +48,39 @@ const formatCreatedAt = (date: string) => {
 };
 
 const AppointmentList = ({ appointment }: IBookingProps) => {
-  const paymentHref = `/payment?${new URLSearchParams({
-    bookingId: appointment._id,
-    service: appointment.serviceName,
-    price: String(appointment.price),
-    duration: String(appointment.duration),
-    date: appointment.date,
-    time: appointment.time,
-    email: appointment.customerEmail,
-    customer: appointment.customerName,
-  })}`;
+ 
+  const handelDeleteData = async()=>{
+    //alert("delete data")
+    try {
+      const res = await fetch(
+        `${process.env.BASE_URL}/booking/${appointment._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log(data.message || "Delete failed");
+      }
+
+      toast.add({
+          title: "Success",
+          description: "Service delete is  delete successfully"
+        });
+      
+    } catch (error) {
+        console.error("Delete error:", error);
+        toast.add({
+          title: "faild item",
+          description: "Service is not delete please try again"
+        });
+    }
+    
+  }
 
   return (
     <TableRow className="group border-b border-slate-100 transition-colors hover:bg-indigo-50/40">
@@ -146,11 +169,11 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
       {/* Actions */}
       <TableCell>
         <div className="flex min-w-[190px] items-center gap-2">
-          <AppointmentDetails appointment={appointment} />
+          {/* <AppointmentDetails appointment={appointment} /> */}
 
           {appointment.status === "confirmed" &&
             appointment.paymentStatus !== "paid" && (
-              <Link href={paymentHref}>
+              <Link href={`/dashboard/user/my-appointments/${appointment._id}`}>
                 <Button
                   size="sm"
                   className="h-8 gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs text-white shadow-sm hover:bg-indigo-700"
@@ -163,6 +186,7 @@ const AppointmentList = ({ appointment }: IBookingProps) => {
 
           {appointment.status === "pending" && (
             <Button
+              onClick={handelDeleteData}
               variant="outline"
               size="sm"
               className="h-8 gap-1.5 rounded-lg border-red-200 px-3 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"

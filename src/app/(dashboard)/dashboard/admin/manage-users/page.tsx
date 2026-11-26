@@ -1,63 +1,68 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { connection } from "next/server";
 
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 
 import UserManagement from "@/components/UserManagement";
-import { IUser } from "@/type/user";
+import type { IUser } from "@/type/user";
 
-const ManageuserPage = async () => {
-  // Dynamic request-time rendering
-  // await connection();
+function UsersLoading() {
+  return (
+    <div className="flex min-h-60 items-center justify-center">
+      <p className="text-sm text-muted-foreground">Loading users...</p>
+    </div>
+  );
+}
 
+export default function ManageuserPage() {
+  return (
+    <Suspense fallback={<UsersLoading />}>
+      <ManageUsersContent />
+    </Suspense>
+  );
+}
+
+
+async function ManageUsersContent() {
   let userData: IUser[] = [];
+  let errorMessage = "";
 
   try {
-    // Get JWT token from Better Auth
-    const { token } = await auth.api.getToken({
-      headers: await headers(),
-    });
 
-    if (!token) {
-      throw new Error("JWT token not found");
-    }
 
-    // Fetch users from Express backend
-    const result = await fetch("http://localhost:8000/users", {
+    const result = await fetch(`${process.env.BASE_URL}/users`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       cache: "no-store",
     });
-
-    // Read response
     const responseText = await result.text();
 
-    console.log("API Status:", result.status);
+    console.log("Backend Status:", result.status);
+    console.log("Backend Response:", responseText);
 
-    if (!result.ok) {
-      throw new Error(
-        `Failed to fetch users: ${result.status} - ${responseText}`,
-      );
+    let data;
+
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      throw new Error("Backend থেকে valid JSON response আসেনি।");
     }
-
-    const data = JSON.parse(responseText);
-
-    // Ensure data is an array
-    userData = Array.isArray(data.data) ? data.data : [];
-
-    console.log("Users:", userData);
+    userData = Array.isArray(data?.data) ? data.data : [];
   } catch (error) {
     console.error("Manage users error:", error);
+
+    errorMessage =
+      error instanceof Error ? error.message : "Unable to load users.";
   }
 
   return (
@@ -68,6 +73,8 @@ const ManageuserPage = async () => {
           Manage all registered users.
         </p>
       </div>
+
+      {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
 
       <div className="rounded-md border">
         <Table>
@@ -84,14 +91,14 @@ const ManageuserPage = async () => {
 
           <TableBody>
             {userData.length > 0 ? (
-              userData.map((users) => (
-                <UserManagement key={users._id} users={users} />
+              userData.map((user) => (
+                <UserManagement key={user._id} users={user} />
               ))
             ) : (
               <TableRow>
-                <TableHead colSpan={4} className="h-24 text-center">
-                  No users found
-                </TableHead>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  {errorMessage ? "Unable to load users" : "No users found"}
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -99,6 +106,4 @@ const ManageuserPage = async () => {
       </div>
     </div>
   );
-};
-
-export default ManageuserPage;
+}

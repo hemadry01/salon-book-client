@@ -129,7 +129,7 @@ function EditServiceDataForm({ service, onUpdated }: EditServiceDataProps) {
       }
 
       const res = await fetch(
-        `http://localhost:8000/admin/service/${service._id}`,
+        `${process.env.BASE_URL}/admin/service/${service._id}`,
         {
           method: "PATCH",
           headers: {

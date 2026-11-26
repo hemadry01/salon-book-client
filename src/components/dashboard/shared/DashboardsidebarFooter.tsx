@@ -66,11 +66,6 @@ const DashboardsidebarFooter = () => {
               }
             >
               <Avatar className="rounded-lg after:rounded-lg">
-                {/* <AvatarImage
-                        src={user?.image ?? undefined}
-                        alt={user?.name}
-                        className="rounded-lg"
-                    /> */}
                 <AvatarFallback className="rounded-lg">
                   {user?.name.slice(0, 2).toLowerCase()}
                 </AvatarFallback>

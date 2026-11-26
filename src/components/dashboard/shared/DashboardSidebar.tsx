@@ -25,15 +25,14 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { TDashboardSidebarItem, TUser, TUserRole } from "@/type";
 import Link from "next/link";
 
-const isActivePath = (pathname: string, href: string) =>
-  href === "/dashboard"
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
+// const isActivePath = (pathname: string, href: string) =>
+//   href === "/dashboard"
+//     ? pathname === href
+//     : pathname === href || pathname.startsWith(`${href}/`);
 
 const roleBaseSidebarItem = {
   user: [
@@ -93,7 +92,7 @@ const roleBaseSidebarItem = {
 };
 
 const DashboardSidebar = ({ user: userProp }: { user?: TUser | null }) => {
-  const pathname = usePathname();
+  //const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
   // On mobile the sidebar is a sheet; close it after navigating.
   const closeMobile = () => setOpenMobile(false);
@@ -119,7 +118,7 @@ const DashboardSidebar = ({ user: userProp }: { user?: TUser | null }) => {
                     <SidebarMenuItem key={href}>
                       <SidebarMenuButton
                         tooltip={title}
-                        isActive={isActivePath(pathname, href)}
+                        // isActive={isActivePath(pathname, href)}
                         render={<Link href={href} onClick={closeMobile} />}
                       >
                         <Icon/>

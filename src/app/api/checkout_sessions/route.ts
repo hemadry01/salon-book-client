@@ -12,6 +12,7 @@ export async function POST() {
     const email = session?.user.email
     const user = session?.user.name
     const usId = session?.user.id
+     
   try {
     const headersList = await headers();
     const origin = headersList.get("origin");

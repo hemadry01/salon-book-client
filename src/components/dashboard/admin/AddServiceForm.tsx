@@ -87,7 +87,7 @@ export default function AddService() {
       setIsImageUploading(false);
       e.target.value = "";
     }
-  };;
+  };
 
   const handleReset = () => {
     setName("");
@@ -134,7 +134,7 @@ export default function AddService() {
           image,
         };
 
-        const res = await fetch("http://localhost:8000/admin/add-service", {
+        const res = await fetch(`${process.env.BASE_URL}/admin/add-service`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

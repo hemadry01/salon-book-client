@@ -2,205 +2,256 @@
 
 import { useState } from "react";
 import Image from "next/image";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+
 import { Camera, UserRound, Mail, Phone } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 export default function MyProfile() {
-  const [fullName, setFullName] = useState("Admin User");
-  const [email, setEmail] = useState("admin@salonbook.com");
-  const [phone, setPhone] = useState("+8801760949622");
-
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
-
-  const {data:session} = authClient.useSession();
+  const { data: session } = authClient.useSession();
   const info = session?.user;
 
-  // Image Preview
-//   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
+  // null means the user has not edited the field yet
+  const [fullName, setFullName] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
 
-//     if (file) {
-//       setImage(file);
-//       setPreview(URL.createObjectURL(file));
-//     }
-//   };
+  // Image URL, not File
+  const [image, setImage] = useState<string | null>(null);
+  const [preview, setPreview] = useState("");
 
-  // Update Profile
-//   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-//     e.preventDefault();
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState("");
 
-//     try {
-//       const formData = new FormData();
+  const displayName = fullName ?? info?.name ?? "";
+  const displayEmail = email ?? info?.email ?? "";
+  const currentImage = preview || image || info?.image || "";
 
-//       formData.append("fullName", fullName);
-//       formData.append("email", email);
-//       formData.append("phone", phone);
+  // Upload image to ImgBB
+  const handleImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
 
-//       if (image) {
-//         formData.append("image", image);
-//       }
+    if (!file) return;
 
-//       const response = await fetch("/api/profile", {
-//         method: "PUT",
-//         body: formData,
-//       });
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image.");
+      return;
+    }
 
-//       const result = await response.json();
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5MB.");
+      return;
+    }
 
-//       if (!response.ok) {
-//         throw new Error(result.message || "Profile update failed");
-//       }
+    setError(null);
+    setSuccess("");
+    setIsImageUploading(true);
 
-//       alert("Profile updated successfully!");
-//     } catch (error) {
-//       console.error(error);
+    const localPreview = URL.createObjectURL(file);
+    setPreview(localPreview);
 
-//       alert(error instanceof Error ? error.message : "Something went wrong!");
-//     }
-//   };
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const apiKey = process.env.NEXT_PUBLIC_IMAGBB_API_KEY;
+
+      if (!apiKey) {
+        throw new Error("ImgBB API key is missing.");
+      }
+
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${apiKey}`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || "Image upload failed.");
+      }
+
+      const uploadedImage = result.data.display_url || result.data.url;
+
+      setImage(uploadedImage);
+      setPreview(uploadedImage);
+      setSuccess("Image uploaded successfully.");
+    } catch (err) {
+      setPreview("");
+      setError(err instanceof Error ? err.message : "Image upload failed.");
+    } finally {
+      setIsImageUploading(false);
+      URL.revokeObjectURL(localPreview);
+    }
+  };
+
+  // Save profile
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setError(null);
+    setSuccess("");
+    setIsSaving(true);
+
+    try {
+      if (!info?.id) {
+        throw new Error("User ID not found.");
+      }
+
+      const updatedData = {
+        name: displayName,
+        email: displayEmail,
+        image: image ?? info.image ?? "",
+      };
+
+      const response = await fetch(
+        `http://localhost:8000/profile/update/${info.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Profile update failed.");
+      }
+
+      setFullName(updatedData.name);
+      setEmail(updatedData.email);
+      setImage(updatedData.image);
+      setPreview(updatedData.image);
+
+      setSuccess("Profile updated successfully!");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-[280px_1fr]">
-        {/* Profile Information Card */}
-        <Card className="flex items-center justify-center rounded-xl border border-slate-200 shadow-sm">
-          <CardContent className="flex w-full flex-col items-center px-5 py-8">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">My Profile</h1>
+        <p className="text-sm text-muted-foreground">
+          Manage your personal information and profile picture.
+        </p>
+      </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Image */}
-            <div className="relative">
-              <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-slate-200 bg-slate-100">
-                <img
-                  src={info?.image|| undefined}
-                  alt="Profile"
-                  className="h-full w-full object-cover"
-                />
+            <div className="flex flex-col items-center gap-4 sm:flex-row">
+              <div className="relative h-28 w-28 overflow-hidden rounded-full border bg-muted">
+                {currentImage ? (
+                  <Image
+                    src={currentImage}
+                    alt="Profile picture"
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    sizes="112px"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <UserRound className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
               </div>
 
-              <label
-                htmlFor="profile-image"
-                className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-violet-700 text-white shadow-md hover:bg-violet-800"
-              >
-                <Camera className="h-4 w-4" />
-              </label>
-            </div>
-
-            <h2 className="mt-3 text-lg font-bold text-slate-900">
-              {info?.name|| "Admin User"}
-            </h2>
-
-            <Badge className="mt-1 bg-sky-100 text-sky-800 hover:bg-sky-100">
-              {info?.role}
-            </Badge>
-
-            <div className="mt-5 w-full space-y-2">
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <UserRound className="h-4 w-4 shrink-0" />
-                <span className="break-all">{info?.email}</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <Phone className="h-4 w-4 shrink-0" />
-                <span>{phone}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Update Profile Form */}
-        <Card className="rounded-xl border border-slate-200 shadow-sm">
-          <CardContent className="p-5 md:p-6">
-            <h2 className="mb-5 text-xl font-bold text-slate-900">
-              {/* Update Profile */}
-              My Profile
-            </h2>
-
-            <form  className="space-y-4">
-              {/* Full Name */}
-              <div className="space-y-1.5">
-                <Label htmlFor="fullName">
-                  Full Name <span className="text-red-500">*</span>
+              <div className="space-y-2 text-center sm:text-left">
+                <Label
+                  htmlFor="profileImage"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+                >
+                  <Camera className="h-4 w-4" />
+                  Change Photo
                 </Label>
 
                 <Input
+                  id="profileImage"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                  disabled={isImageUploading}
+                />
+
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG or WEBP. Maximum 5MB.
+                </p>
+
+                {isImageUploading && (
+                  <Badge variant="secondary">Uploading image...</Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <div className="relative">
+                <UserRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
                   id="fullName"
-                  value={info?.name}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter full name"
+                  value={displayName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  placeholder="Enter your full name"
+                  className="pl-10"
                   required
-                  className="h-10 border-slate-200 focus-visible:ring-violet-500"
                 />
               </div>
+            </div>
 
-              {/* Email */}
-              <div className="space-y-1.5">
-                <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
-                </Label>
-
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  value={info?.email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email"
+                  value={displayEmail}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Enter your email"
+                  className="pl-10"
                   required
-                  className="h-10 border-slate-200 focus-visible:ring-violet-500"
                 />
               </div>
+            </div>
 
-              {/* Phone */}
-              {/* <div className="space-y-1.5">
-                <Label htmlFor="phone">Phone</Label>
+            {/* Messages */}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Enter phone number"
-                  className="h-10 border-slate-200 focus-visible:ring-violet-500"
-                />
-              </div> */}
+            {success && <p className="text-sm text-green-600">{success}</p>}
 
-              {/* Profile Image */}
-              {/* <div className="space-y-2">
-                <Label htmlFor="profile-image">Profile Image</Label>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <Input
-                    id="profile-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="h-10 max-w-sm cursor-pointer border-slate-200 pt-1.5 file:mr-2 file:rounded file:border-0 file:bg-violet-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-violet-700"
-                  />
-
-                  <div className="h-12 w-12 overflow-hidden rounded-md border bg-slate-100">
-                    <img
-                      src={preview || currentImage}
-                      alt="Preview"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </div>
-              </div> */}
-
-              {/* Submit */}
-              {/* <Button
-                type="submit"
-                className="bg-violet-700 px-6 hover:bg-violet-800"
-              >
-                Update Profile
-              </Button> */}
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+            {/* Submit */}
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isSaving || isImageUploading}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,31 +1,49 @@
 const BASE_URL = "http://localhost:8000";
 
-export const checkoutVerify = async (sessionId: string) => {
-  const response = await fetch(
-    `${BASE_URL}/payments/checkout-verify`,
-    {
+interface CreatePaymentResponse {
+  success: boolean;
+  message?: string;
+  url?: string;
+  sessionId?: string;
+  [key: string]: unknown;
+}
+
+export async function createdPayment(
+  serviceId: string,
+  userId: string,
+  bookingId: string,
+): Promise<CreatePaymentResponse> {
+  try {
+    const res = await fetch(`${BASE_URL}/create-checkout-session`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ sessionId }),
+      body: JSON.stringify({
+        serviceId,
+        userId,
+        bookingId,
+      }),
       cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: data?.message || "Payment session creation failed.",
+      };
     }
-  );
 
-  const contentType = response.headers.get("content-type");
+    return data;
+  } catch (error) {
+    console.error("Payment creation failed:", error);
 
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+    return {
+      success: false,
+      message:
+        "Something went wrong while creating the payment. Please try again.",
+    };
   }
-
-  if (!contentType?.includes("application/json")) {
-    const text = await response.text();
-    console.error("Non-JSON response:", text);
-
-    throw new Error("Backend did not return JSON");
-  }
-
-  return response.json();
-};
- 
+}

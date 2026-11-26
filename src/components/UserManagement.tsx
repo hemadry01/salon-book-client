@@ -25,7 +25,7 @@ const UserManagement = ({ users }: IUserProps) => {
   const handleBlockStatus = async() => {
     const newStatus = !users.isBlocked
     const res = await fetch(
-      `http://localhost:8000/admin/user/${users._id}/status`,
+      `${process.env.BASE_URL}/admin/user/${users._id}/status`,
       {
         method: "PATCH",
         headers: {

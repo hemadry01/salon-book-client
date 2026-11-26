@@ -4,8 +4,8 @@ import ManageServicesTable from "@/components/dashboard/admin/ManageServicesTabl
 import type { IService } from "@/type/service";
 
 async function ServicesData() {
-  const res = await fetch("http://localhost:8000/admin/services", {
-    next: { revalidate: 1},
+  const res = await fetch(`${process.env.BASE_URL}/admin/services`, {
+    next: { revalidate: 1 },
   });
 
   if (!res.ok) {

@@ -9,7 +9,7 @@ const ServiceDesplay = async() => {
 
     let serviceData: IService[] = [];
       try {
-        const res = await fetch("http://localhost:8000/sevices/limit", {
+        const res = await fetch(`${process.env.BASE_URL}/sevices/limit`, {
           next: { revalidate: 60 },
         });
     

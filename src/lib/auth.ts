@@ -40,12 +40,7 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    jwt({
-      jwt: {
-        issuer: "http://localhost:3000",
-        audience: "http://localhost:3000",
-      },
-    }),
+    jwt(),
   ],
 
   session: {
