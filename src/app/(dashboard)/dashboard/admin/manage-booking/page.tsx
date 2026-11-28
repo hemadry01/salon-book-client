@@ -38,7 +38,7 @@ async function ManageBooking() {
   let hasError = false;
 
   try {
-    const response = await fetch(`${process.env.BASE_URL}/bookings`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`);
 
     const data = await response.json();
 

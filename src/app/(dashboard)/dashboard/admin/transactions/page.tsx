@@ -111,7 +111,9 @@ async function TransactionsContent() {
   let errorMessage: string | null = null;
 
   try {
-    const res = await fetch(`${process.env.BASE_URL}/admin/payment/transactions`);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/payment/transactions`,
+    );
 
     const result = await res.json();
 

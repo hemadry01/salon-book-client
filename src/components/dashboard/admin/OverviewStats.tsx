@@ -2,17 +2,19 @@ import React from 'react';
 
 const OverviewStats = async() => {
 
-  const res = await fetch(`${process.env.PUBLIC_NEXT_URL}/users/counts`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/counts`);
   const user = await res.json();
   const totalUser = user.count;
   
 
-  const response = await fetch(`${process.env.PUBLIC_NEXT_URL}/services/count`);
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/services/count`,
+  );
   const activeservice = await response.json();
   const totalService = activeservice.activecount;
 
    const appointmentRes = await fetch(
-     `${process.env.PUBLIC_NEXT_URL}/appointments/count`,
+     `${process.env.NEXT_PUBLIC_API_URL}/appointments/count`,
    );
 
      const appointmentData = await appointmentRes.json();
